@@ -6,10 +6,13 @@ import { DamageTextManager } from '../systems/DamageTextManager';
 import { ParticleSystem } from '../systems/ParticleSystem';
 import { SynergyManager, SYNERGY_INFO } from '../systems/SynergySystem';
 import { SaveSystem } from '../systems/SaveSystem';
+import { TacticalSystem } from '../systems/TacticalSystem';
+import { WaveSystem, WaveConfig, WaveMonsterSpawn } from '../systems/WaveSystem';
 import {
   HeroClass,
   HeroStats,
   DungeonNode,
+  DungeonNodeType,
   PerkCard,
   EquipmentItem,
   SynergyType,
@@ -58,6 +61,7 @@ export class BattleScene extends Phaser.Scene {
   private audio!: AudioSystem;
   private damageText!: DamageTextManager;
   private particles!: ParticleSystem;
+  private tacticalSystem!: TacticalSystem;
 
   // Combat State & Speed Controls
   public gameSpeed: number = 1;
@@ -159,7 +163,10 @@ export class BattleScene extends Phaser.Scene {
       this.createBossHUD();
     }
 
-    // 6. Camera Fade-in and combat commencement
+    // 6. Tactical Agency System (Tactical Dash & Focus Target)
+    this.tacticalSystem = new TacticalSystem(this, this.hero, this.monsters);
+
+    // 7. Camera Fade-in and combat commencement
     this.cameras.main.fadeIn(400, 0, 0, 0);
     this.time.delayedCall(450, () => {
       this.combatState = 'active';
@@ -1008,6 +1015,11 @@ export class BattleScene extends Phaser.Scene {
     // Tùy chỉnh tốc độ trận đánh
     const effectiveDelta = delta * this.gameSpeed;
 
+    // Cập nhật Tactical System (Dash cooldown, input, focus reticle)
+    if (this.tacticalSystem) {
+      this.tacticalSystem.update(effectiveDelta);
+    }
+
     // Cập nhật Hero AI & Action
     this.hero.updateHero(effectiveDelta, this.monsters, (killedMonster) => {
       this.handleMonsterKilled(killedMonster);
@@ -1031,6 +1043,19 @@ export class BattleScene extends Phaser.Scene {
             this.audio.playHit();
             this.cameras.main.shake(70, 0.0035 * this.gameSpeed);
 
+            // Special Monster Debuffs (Tactical threat countering)
+            if (monster.affixes && monster.affixes.some((a) => a.type === 'chilling')) {
+              this.hero.applyChill(2.5, 0.35);
+            }
+            if (monster.monsterConfig.type === 'slime' && Math.random() < 0.35) {
+              this.hero.applyPoison(3.0, 7);
+            } else if (monster.monsterConfig.type === 'tentacle' && Math.random() < 0.45) {
+              this.hero.applyPoison(3.5, 10);
+            }
+            if (monster.monsterConfig.type === 'golem' && Math.random() < 0.4) {
+              this.hero.applyArmorShred(3.5, 25);
+            }
+
             if (result.isDead) {
               this.handleHeroDefeat();
             }
@@ -1044,6 +1069,8 @@ export class BattleScene extends Phaser.Scene {
               const result = this.hero.takeDamage(dmg, monster);
               this.audio.playHit();
               this.cameras.main.shake(160, 0.015 * this.gameSpeed);
+              // Boss AoE blast shreds armor
+              this.hero.applyArmorShred(3.0, 30);
               if (result.isDead) {
                 this.handleHeroDefeat();
               }
@@ -1067,6 +1094,9 @@ export class BattleScene extends Phaser.Scene {
 
     if (summonedMonsters.length > 0) {
       this.monsters.push(...summonedMonsters);
+      if (this.tacticalSystem) {
+        this.tacticalSystem.setMonsters(this.monsters);
+      }
     }
 
     // Kiểm tra Hero còn sống
@@ -1396,6 +1426,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private transitionToRewardScene(): void {
+    this.tacticalSystem?.destroy();
     this.cameras.main.fade(350, 0, 0, 0);
     this.time.delayedCall(350, () => {
       this.scene.start('RewardScene', {
@@ -1431,6 +1462,7 @@ export class BattleScene extends Phaser.Scene {
 
     // Sau 1.5 giây, chuyển sang GameOverScene
     this.time.delayedCall(1500, () => {
+      this.tacticalSystem?.destroy();
       this.cameras.main.fade(450, 15, 0, 0);
       this.time.delayedCall(450, () => {
         this.scene.start('GameOverScene', {

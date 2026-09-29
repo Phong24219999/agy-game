@@ -354,4 +354,115 @@ export class AudioSystem {
       osc.stop(now + 0.4);
     });
   }
+
+  // Tactical Dash whoosh
+  public playDash(): void {
+    if (!this.enabled) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const bufferSize = Math.floor(ctx.sampleRate * 0.2);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.05));
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(250, now + 0.2);
+    filter.Q.value = 2.0;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.4 * this.volume, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start(now);
+  }
+
+  // Tactical Target Lock blip
+  public playTargetLock(): void {
+    if (!this.enabled) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.setValueAtTime(1760, now + 0.04);
+
+    gain.gain.setValueAtTime(0.25 * this.volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.1);
+  }
+
+  // Wave Incoming Horn / Alert sound
+  public playWaveIncoming(isWarning: boolean = false): void {
+    if (!this.enabled) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const baseFreq = isWarning ? 220 : 330;
+    const frequencies = isWarning ? [baseFreq, baseFreq * 1.25, baseFreq * 1.5] : [baseFreq, baseFreq * 1.33];
+
+    frequencies.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = isWarning ? 'sawtooth' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+      osc.frequency.exponentialRampToValueAtTime(freq * (isWarning ? 0.8 : 1.1), now + idx * 0.12 + 0.35);
+
+      gain.gain.setValueAtTime(0.25 * this.volume, now + idx * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + idx * 0.12);
+      osc.stop(now + idx * 0.12 + 0.35);
+    });
+  }
+
+  // Heavy Attack Slam Impact
+  public playHeavySlam(): void {
+    if (!this.enabled) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+
+    gain.gain.setValueAtTime(0.6 * this.volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.35);
+  }
 }

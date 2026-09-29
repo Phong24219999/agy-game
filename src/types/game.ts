@@ -94,6 +94,15 @@ export interface PerkCard {
 }
 
 export type NodeType = 'battle' | 'elite' | 'chest' | 'shop' | 'campfire' | 'boss';
+export type DungeonNodeType = NodeType;
+
+export type MonsterDebuffType = 'poisonous' | 'armor_shred' | 'chilling';
+
+export interface MonsterDebuffEffect {
+  type: MonsterDebuffType;
+  duration: number; // Duration in seconds
+  value?: number; // e.g. DPS for poison, reduction ratio for armor (0.35), slow ratio (0.25)
+}
 
 export interface DungeonNode {
   id: string;

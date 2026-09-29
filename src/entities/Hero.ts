@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { HeroClass, HeroStats, EquipmentItem, PerkCard, RelicItem, SkillEvolution } from '../types/game';
+import { HeroClass, HeroStats, EquipmentItem, PerkCard, RelicItem, SkillEvolution, MonsterDebuffEffect } from '../types/game';
 import { Monster } from './Monster';
 import { Minion } from './Minion';
 import { AudioSystem } from '../systems/AudioSystem';
@@ -18,6 +18,20 @@ export class Hero extends Phaser.GameObjects.Container {
   public evolutions: SkillEvolution[] = [];
   public minions: Minion[] = [];
   public isDead: boolean = false;
+
+  // Tactical Agency: Invulnerability & Focus Target
+  public isInvulnerable: boolean = false;
+  private invulnerableTimer: number = 0;
+  public focusTarget: Monster | null = null;
+
+  // Debuff Status Effects
+  private poisonDuration: number = 0;
+  private poisonDps: number = 0;
+  private poisonTickTimer: number = 0;
+  private armorShredDuration: number = 0;
+  private armorShredPercent: number = 0;
+  private chillDuration: number = 0;
+  private chillSlowPercent: number = 0;
 
   private sprite: Phaser.GameObjects.Sprite;
   private hpBarBg: Phaser.GameObjects.Rectangle;
@@ -112,12 +126,166 @@ export class Hero extends Phaser.GameObjects.Container {
     if (derived.speed) this.stats.speed = derived.speed;
   }
 
+  // --- Tactical & Debuff API ---
+
+  public setInvulnerable(invulnerable: boolean, duration: number = 0.35): void {
+    this.isInvulnerable = invulnerable;
+    if (invulnerable) {
+      this.invulnerableTimer = duration;
+      // Visual feedback: jade/cyan glow aura
+      this.sprite.setTint(0x99ffff);
+      this.particles.createHitSparks(this.x, this.y, 0x22d3ee);
+    } else {
+      this.invulnerableTimer = 0;
+      this.updateStatusVisuals();
+    }
+  }
+
+  public applyPoison(duration: number, dps: number): void {
+    if (this.isDead) return;
+    this.poisonDuration = Math.max(this.poisonDuration, duration);
+    this.poisonDps = Math.max(this.poisonDps, dps);
+    this.damageText.showStatus(this.x, this.y - 25, '☠️ TRÚNG ĐỘC!', '#22c55e');
+    this.updateStatusVisuals();
+  }
+
+  public applyArmorShred(duration: number, percent: number): void {
+    if (this.isDead) return;
+    this.armorShredDuration = Math.max(this.armorShredDuration, duration);
+    this.armorShredPercent = Math.max(this.armorShredPercent, percent);
+    this.damageText.showStatus(this.x, this.y - 25, `🛡️ PHÁ GIÁP -${Math.round(percent)}%!`, '#f87171');
+    this.updateStatusVisuals();
+  }
+
+  public applyChill(duration: number, slowPercent: number): void {
+    if (this.isDead) return;
+    this.chillDuration = Math.max(this.chillDuration, duration);
+    this.chillSlowPercent = Math.max(this.chillSlowPercent, slowPercent);
+    this.damageText.showStatus(this.x, this.y - 25, `❄️ BỊ LÀM CHẬM -${Math.round(slowPercent * 100)}%!`, '#38bdf8');
+    this.updateStatusVisuals();
+  }
+
+  public applyDebuff(debuff: MonsterDebuffEffect): void {
+    if (this.isDead) return;
+    if (debuff.type === 'poisonous') {
+      const dps = debuff.value !== undefined ? debuff.value : 8;
+      this.applyPoison(debuff.duration, dps);
+    } else if (debuff.type === 'armor_shred') {
+      const percent = debuff.value !== undefined ? (debuff.value <= 1 ? debuff.value * 100 : debuff.value) : 35;
+      this.applyArmorShred(debuff.duration, percent);
+    } else if (debuff.type === 'chilling') {
+      const slow = debuff.value !== undefined ? (debuff.value > 1 ? debuff.value / 100 : debuff.value) : 0.25;
+      this.applyChill(debuff.duration, slow);
+    }
+  }
+
+  public getEffectiveDef(): number {
+    if (this.armorShredDuration > 0 && this.armorShredPercent > 0) {
+      return Math.max(0, this.stats.def * (1 - this.armorShredPercent / 100));
+    }
+    return this.stats.def;
+  }
+
+  public getEffectiveSpeed(): number {
+    if (this.chillDuration > 0 && this.chillSlowPercent > 0) {
+      return Math.max(25, this.stats.speed * (1 - this.chillSlowPercent));
+    }
+    return this.stats.speed;
+  }
+
+  public getEffectiveAttackSpeed(): number {
+    if (this.chillDuration > 0 && this.chillSlowPercent > 0) {
+      return Math.max(0.2, this.stats.attackSpeed * (1 - this.chillSlowPercent));
+    }
+    return this.stats.attackSpeed;
+  }
+
+  private updateStatusVisuals(): void {
+    if (this.isInvulnerable) {
+      this.sprite.setTint(0x99ffff); // Cyan / Jade ngọc
+    } else if (this.chillDuration > 0) {
+      this.sprite.setTint(0x38bdf8); // Frost blue
+    } else if (this.poisonDuration > 0) {
+      this.sprite.setTint(0x22c55e); // Poison green
+    } else if (this.armorShredDuration > 0) {
+      this.sprite.setTint(0xf87171); // Armor shred red
+    } else {
+      this.sprite.clearTint();
+    }
+  }
+
   public updateHero(delta: number, monsters: Monster[], onMonsterKilled: (m: Monster) => void): void {
     if (this.isDead) return;
 
     const dt = delta / 1000;
     this.attackTimer += dt;
     this.skillCooldown -= dt;
+
+    // 1. Invulnerability Timer
+    if (this.invulnerableTimer > 0) {
+      this.invulnerableTimer -= dt;
+      if (this.invulnerableTimer <= 0) {
+        this.invulnerableTimer = 0;
+        this.isInvulnerable = false;
+        this.updateStatusVisuals();
+      }
+    }
+
+    // 2. Poison DoT Tick (every 0.5s)
+    if (this.poisonDuration > 0) {
+      this.poisonDuration -= dt;
+      this.poisonTickTimer += dt;
+      if (this.poisonTickTimer >= 0.5) {
+        this.poisonTickTimer = 0;
+        const poisonDmg = Math.max(1, this.poisonDps * 0.5);
+        if (!this.isInvulnerable) {
+          this.stats.hp = Math.max(0, this.stats.hp - poisonDmg);
+          this.damageText.showPoison(this.x, this.y, poisonDmg);
+          this.updateHpBar();
+
+          if (this.stats.hp <= 0) {
+            // Relic: Phoenix Feather
+            if (RelicManager.hasRelic(this.relics, 'relic_phoenix_feather') && !this.phoenixFeatherUsed) {
+              this.phoenixFeatherUsed = true;
+              this.stats.hp = Math.round(this.stats.maxHp * 0.5);
+              this.audio.playVictory();
+              this.damageText.showHeal(this.x, this.y, this.stats.hp);
+              this.updateHpBar();
+            } else {
+              this.stats.hp = 0;
+              this.isDead = true;
+              this.die();
+              return;
+            }
+          }
+        }
+      }
+      if (this.poisonDuration <= 0) {
+        this.poisonDuration = 0;
+        this.poisonDps = 0;
+        this.updateStatusVisuals();
+      }
+    }
+
+    // 3. Armor Shred Timer
+    if (this.armorShredDuration > 0) {
+      this.armorShredDuration -= dt;
+      if (this.armorShredDuration <= 0) {
+        this.armorShredDuration = 0;
+        this.armorShredPercent = 0;
+        this.updateStatusVisuals();
+      }
+    }
+
+    // 4. Chill Timer
+    if (this.chillDuration > 0) {
+      this.chillDuration -= dt;
+      if (this.chillDuration <= 0) {
+        this.chillDuration = 0;
+        this.chillSlowPercent = 0;
+        this.updateStatusVisuals();
+      }
+    }
 
     // Relic Periodic Tick (every 1 second)
     this.relicTickTimer += dt;
@@ -127,29 +295,37 @@ export class Hero extends Phaser.GameObjects.Container {
     }
 
     // Filter alive monsters
-    const aliveMonsters = monsters.filter((m) => !m.isDead);
+    const aliveMonsters = monsters.filter((m) => !m.isDead && m.active);
     if (aliveMonsters.length === 0) return;
 
-    // Find closest monster
+    // Find Target (Focus Target Priority!)
     let target: Monster | null = null;
     let minDist = 99999;
-    for (const m of aliveMonsters) {
-      const d = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
-      if (d < minDist) {
-        minDist = d;
-        target = m;
+
+    if (this.focusTarget && !this.focusTarget.isDead && this.focusTarget.active) {
+      target = this.focusTarget;
+      minDist = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y);
+    } else {
+      this.focusTarget = null;
+      for (const m of aliveMonsters) {
+        const d = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
+        if (d < minDist) {
+          minDist = d;
+          target = m;
+        }
       }
     }
 
     if (!target) return;
 
     const optimalRange = this.getOptimalRange();
+    const effectiveSpeed = this.getEffectiveSpeed();
 
     // Movement AI
     if (minDist > optimalRange) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
-      this.x += Math.cos(angle) * this.stats.speed * dt;
-      this.y += Math.sin(angle) * this.stats.speed * dt;
+      this.x += Math.cos(angle) * effectiveSpeed * dt;
+      this.y += Math.sin(angle) * effectiveSpeed * dt;
       this.sprite.flipX = target.x < this.x;
     } else if (
       (this.heroClass === 'mage' && minDist < 90) ||
@@ -158,8 +334,8 @@ export class Hero extends Phaser.GameObjects.Container {
     ) {
       // Ranged heroes kite away if monster is too close
       const angle = Phaser.Math.Angle.Between(target.x, target.y, this.x, this.y);
-      this.x += Math.cos(angle) * (this.stats.speed * 0.7) * dt;
-      this.y += Math.sin(angle) * (this.stats.speed * 0.7) * dt;
+      this.x += Math.cos(angle) * (effectiveSpeed * 0.7) * dt;
+      this.y += Math.sin(angle) * (effectiveSpeed * 0.7) * dt;
       this.sprite.flipX = target.x < this.x;
     }
 
@@ -170,14 +346,15 @@ export class Hero extends Phaser.GameObjects.Container {
       this.skillCooldown = effectiveCooldown;
     }
 
-    // Auto Basic Attack
-    const attackInterval = 1 / Math.max(0.2, this.stats.attackSpeed);
+    // Auto Basic Attack with Effective Attack Speed
+    const effectiveAttackSpeed = this.getEffectiveAttackSpeed();
+    const attackInterval = 1 / effectiveAttackSpeed;
     if (this.attackTimer >= attackInterval && minDist <= optimalRange + 25) {
       this.attackTimer = 0;
       this.performBasicAttack(target, aliveMonsters, onMonsterKilled);
     }
 
-    // Update Minions
+    // Update Minions with focusTarget priority
     this.minions = this.minions.filter((min) => !min.isDead);
     for (const minion of this.minions) {
       minion.updateMinion(delta, aliveMonsters, (m, dmg) => {
@@ -185,7 +362,7 @@ export class Hero extends Phaser.GameObjects.Container {
         this.particles.createHitSparks(m.x, m.y);
         this.damageText.showDamage(m.x, m.y, result.finalDamage, false, 'phys');
         if (result.isDead) onMonsterKilled(m);
-      });
+      }, this.focusTarget);
     }
 
     this.updateHpBar();
@@ -670,8 +847,33 @@ export class Hero extends Phaser.GameObjects.Container {
     }
   }
 
-  public takeDamage(rawDamage: number, attacker?: Monster): { finalDamage: number; isDead: boolean } {
+  public takeDamage(
+    rawDamage: number,
+    attacker?: Monster,
+    debuffs?: MonsterDebuffEffect[]
+  ): { finalDamage: number; isDead: boolean } {
     if (this.isDead) return { finalDamage: 0, isDead: true };
+
+    // Tactical I-Frames: Complete invulnerability during tactical dash
+    if (this.isInvulnerable) {
+      this.damageText.showEvade(this.x, this.y);
+      return { finalDamage: 0, isDead: false };
+    }
+
+    // Apply incoming debuffs from attack/skills
+    if (debuffs && debuffs.length > 0) {
+      for (const d of debuffs) {
+        this.applyDebuff(d);
+      }
+    }
+    if (attacker && (attacker as unknown as { debuffs?: MonsterDebuffEffect[] }).debuffs) {
+      const monsterDebuffs = (attacker as unknown as { debuffs?: MonsterDebuffEffect[] }).debuffs;
+      if (monsterDebuffs && monsterDebuffs.length > 0) {
+        for (const d of monsterDebuffs) {
+          this.applyDebuff(d);
+        }
+      }
+    }
 
     // Dodge check
     if (Math.random() < this.stats.dodgeRate) {
@@ -679,8 +881,9 @@ export class Hero extends Phaser.GameObjects.Container {
       return { finalDamage: 0, isDead: false };
     }
 
-    // Defense mitigation
-    const mitigation = 1 - Math.min(0.75, this.stats.def / 100);
+    // Defense mitigation (affected by Armor Shred)
+    const effectiveDef = this.getEffectiveDef();
+    const mitigation = 1 - Math.min(0.75, Math.max(0, effectiveDef / 100));
     let finalDamage = Math.max(1, rawDamage * mitigation);
 
     // Shield absorption

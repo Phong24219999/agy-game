@@ -29,32 +29,43 @@ export class Minion extends Phaser.GameObjects.Container {
     });
   }
 
-  public updateMinion(delta: number, monsters: Monster[], onAttackTarget: (m: Monster, dmg: number) => void): void {
+  public updateMinion(
+    delta: number,
+    monsters: Monster[],
+    onAttackTarget: (m: Monster, dmg: number) => void,
+    focusTarget: Monster | null = null
+  ): void {
     if (this.isDead) return;
 
     this.attackTimer += delta / 1000;
 
-    // Find nearest living monster
-    let nearest: Monster | null = null;
+    let target: Monster | null = null;
     let minDist = 99999;
 
-    for (const m of monsters) {
-      if (m.isDead) continue;
-      const d = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
-      if (d < minDist) {
-        minDist = d;
-        nearest = m;
+    // Prioritize focus target if valid and alive
+    if (focusTarget && !focusTarget.isDead && focusTarget.active) {
+      target = focusTarget;
+      minDist = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y);
+    } else {
+      // Find nearest living monster
+      for (const m of monsters) {
+        if (m.isDead || !m.active) continue;
+        const d = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
+        if (d < minDist) {
+          minDist = d;
+          target = m;
+        }
       }
     }
 
-    if (!nearest) return;
+    if (!target) return;
 
     const range = 35;
     if (minDist > range) {
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, nearest.x, nearest.y);
+      const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
       this.x += Math.cos(angle) * 90 * (delta / 1000);
       this.y += Math.sin(angle) * 90 * (delta / 1000);
-      this.sprite.flipX = nearest.x < this.x;
+      this.sprite.flipX = target.x < this.x;
     } else {
       if (this.attackTimer >= 1.0) {
         this.attackTimer = 0;
@@ -64,7 +75,7 @@ export class Minion extends Phaser.GameObjects.Container {
           yoyo: true,
           duration: 100
         });
-        onAttackTarget(nearest, this.atk);
+        onAttackTarget(target, this.atk);
       }
     }
   }

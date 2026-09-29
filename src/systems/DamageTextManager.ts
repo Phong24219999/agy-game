@@ -106,4 +106,82 @@ export class DamageTextManager {
       }
     });
   }
+
+  // Tactical I-Frames Evade (Jade / Cyan color)
+  public showEvade(x: number, y: number): void {
+    const evadeText = this.scene.add.text(x, y - 12, '✨ NÉ TRÁNH! ✨', {
+      fontFamily: 'sans-serif',
+      fontSize: '17px',
+      fontStyle: 'bold',
+      color: '#2dd4bf', // Jade / Cyan lam ngọc
+      stroke: '#042f2e',
+      strokeThickness: 3.5
+    }).setOrigin(0.5);
+
+    evadeText.setDepth(105);
+
+    this.scene.tweens.add({
+      targets: evadeText,
+      y: y - 42,
+      scale: 1.15,
+      alpha: 0,
+      duration: 800,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        evadeText.destroy();
+      }
+    });
+  }
+
+  // Periodic Poison damage text (Toxic Green)
+  public showPoison(x: number, y: number, amount: number): void {
+    const text = `☣️ -${Math.round(amount)}`;
+    const poisonText = this.scene.add.text(x + (Math.random() * 16 - 8), y - 10, text, {
+      fontFamily: 'sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#22c55e', // Toxic Green
+      stroke: '#052e16',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    poisonText.setDepth(100);
+
+    this.scene.tweens.add({
+      targets: poisonText,
+      y: y - 35,
+      alpha: 0,
+      duration: 750,
+      ease: 'Power1',
+      onComplete: () => {
+        poisonText.destroy();
+      }
+    });
+  }
+
+  // General Status text alert (e.g. Armor Shred, Chill, Target Lock)
+  public showStatus(x: number, y: number, text: string, color: string = '#f87171'): void {
+    const statusText = this.scene.add.text(x, y, text, {
+      fontFamily: 'sans-serif',
+      fontSize: '13px',
+      fontStyle: 'bold',
+      color: color,
+      stroke: '#000000',
+      strokeThickness: 2.5
+    }).setOrigin(0.5);
+
+    statusText.setDepth(105);
+
+    this.scene.tweens.add({
+      targets: statusText,
+      y: y - 26,
+      alpha: 0,
+      duration: 850,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        statusText.destroy();
+      }
+    });
+  }
 }
+
