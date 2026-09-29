@@ -331,67 +331,117 @@ export class BattleScene extends Phaser.Scene {
     const nodeType = this.node?.type || 'battle';
 
     if (nodeType === 'boss') {
-      // 1 Floor Boss monster_boss + 2 Quái xương hộ vệ
-      const bossConfig: MonsterConfig = {
-        type: 'boss',
-        name: `Chúa Tể Hư Vô (Tầng ${floor})`,
-        maxHp: Math.round(550 * (1 + (floor - 1) * 0.35)),
-        atk: Math.round(28 * (1 + (floor - 1) * 0.25)),
-        def: 15,
-        speed: 52,
-        range: 55,
-        attackCooldown: 1.5,
-        goldValue: 70 + floor * 15,
-        soulValue: 35 + floor * 10,
-        isBoss: true,
-        floor: floor
-      };
+      let bossConfig: MonsterConfig;
+      let guard1Type: MonsterType;
+      let guard2Type: MonsterType;
+
+      if (floor === 1) {
+        // Floor 1 Boss: boss_lich
+        bossConfig = {
+          type: 'boss_lich',
+          name: `Lich Vương Tử Linh (Tầng 1)`,
+          maxHp: Math.round(560 * (1 + (floor - 1) * 0.35)),
+          atk: Math.round(24 * (1 + (floor - 1) * 0.22)),
+          def: 12,
+          speed: 48,
+          range: 160,
+          attackCooldown: 1.6,
+          goldValue: 70 + floor * 15,
+          soulValue: 35 + floor * 10,
+          isBoss: true,
+          floor: floor
+        };
+        guard1Type = 'skeleton';
+        guard2Type = 'skeleton_archer';
+      } else if (floor === 2) {
+        // Floor 2 Boss: boss_ignis
+        bossConfig = {
+          type: 'boss_ignis',
+          name: `Hỏa Ma Tống Xuất Ignis (Tầng 2)`,
+          maxHp: Math.round(760 * (1 + (floor - 1) * 0.35)),
+          atk: Math.round(30 * (1 + (floor - 1) * 0.25)),
+          def: 18,
+          speed: 50,
+          range: 55,
+          attackCooldown: 1.5,
+          goldValue: 90 + floor * 15,
+          soulValue: 45 + floor * 10,
+          isBoss: true,
+          floor: floor
+        };
+        guard1Type = 'hellhound';
+        guard2Type = 'imp';
+      } else {
+        // Floor 3+ Boss: boss_sovereign
+        bossConfig = {
+          type: 'boss_sovereign',
+          name: `Chúa Tể Hư Vô Sovereign (Tầng ${floor})`,
+          maxHp: Math.round(1020 * (1 + (floor - 1) * 0.35)),
+          atk: Math.round(36 * (1 + (floor - 1) * 0.25)),
+          def: 22,
+          speed: 55,
+          range: 65,
+          attackCooldown: 1.4,
+          goldValue: 120 + floor * 15,
+          soulValue: 60 + floor * 10,
+          isBoss: true,
+          floor: floor
+        };
+        guard1Type = 'void_eye';
+        guard2Type = 'stalker';
+      }
 
       const boss = new Monster(this, 700, 300, bossConfig);
       this.monsters.push(boss);
       this.bossMonster = boss;
 
-      // 2 Quái xương hộ vệ (x: 600, y: 220 & 380)
-      const guardConfig1 = this.createRegularMonsterConfig('skeleton', floor, statScale);
-      guardConfig1.name = 'Hộ Vệ Hư Vô';
-      const guardConfig2 = { ...guardConfig1 };
+      // 2 Hộ vệ phù hợp với tầng
+      const guardConfig1 = this.createRegularMonsterConfig(guard1Type, floor, statScale);
+      guardConfig1.name = `Hộ Vệ ${guardConfig1.name}`;
+      const guardConfig2 = this.createRegularMonsterConfig(guard2Type, floor, statScale);
+      guardConfig2.name = `Hộ Vệ ${guardConfig2.name}`;
 
       const guard1 = new Monster(this, 600, 220, guardConfig1);
       const guard2 = new Monster(this, 600, 380, guardConfig2);
       this.monsters.push(guard1, guard2);
 
     } else if (nodeType === 'elite') {
-      // 1 Tinh anh (golem hoặc necromancer với HP x1.8, ATK x1.4) + 2 quái thường trợ chiến
-      const isGolem = Math.random() < 0.5;
-      const eliteType: MonsterType = isGolem ? 'golem' : 'necromancer';
+      // Chọn quái Tinh anh & Quái trợ chiến theo tầng
+      let eliteType: MonsterType;
+      let minionTypes: MonsterType[];
 
-      const baseHp = isGolem ? 210 : 160;
-      const baseAtk = isGolem ? 23 : 18;
+      if (floor === 1) {
+        eliteType = Math.random() < 0.5 ? 'ghoul' : 'skeleton_archer';
+        minionTypes = ['skeleton', 'slime', 'skeleton_archer'];
+      } else if (floor === 2) {
+        eliteType = Math.random() < 0.5 ? 'golem' : 'cultist';
+        minionTypes = ['imp', 'hellhound', 'cultist'];
+      } else {
+        eliteType = Math.random() < 0.5 ? 'necromancer' : 'stalker';
+        minionTypes = ['void_eye', 'stalker', 'tentacle'];
+      }
+
+      const baseCfg = this.createRegularMonsterConfig(eliteType, floor, statScale);
 
       // Select 1-2 Elite Affixes
       const shuffledAffixes = [...ELITE_AFFIXES].sort(() => Math.random() - 0.5);
       const chosenAffixes = shuffledAffixes.slice(0, Math.random() < 0.4 ? 2 : 1);
 
       const eliteConfig: MonsterConfig = {
-        type: eliteType,
-        name: isGolem ? 'Golem Cổ Đại' : 'Pháp Sư Chiêu Hồn',
-        maxHp: Math.round(baseHp * statScale * 1.8),
-        atk: Math.round(baseAtk * statScale * 1.4),
-        def: isGolem ? 18 : 10,
-        speed: isGolem ? 45 : 55,
-        range: isGolem ? 45 : 140,
-        attackCooldown: isGolem ? 1.8 : 2.0,
-        goldValue: 35 + floor * 6,
-        soulValue: 16 + floor * 3,
-        floor: floor,
+        ...baseCfg,
+        name: `${baseCfg.name} [Tinh Anh]`,
+        maxHp: Math.round(baseCfg.maxHp * 1.8),
+        atk: Math.round(baseCfg.atk * 1.4),
+        def: baseCfg.def + 4,
+        goldValue: Math.round(baseCfg.goldValue * 2.2),
+        soulValue: Math.round(baseCfg.soulValue * 2.5),
         affixes: chosenAffixes
       };
 
       const elite = new Monster(this, 680, 300, eliteConfig);
       this.monsters.push(elite);
 
-      // 2 quái thường trợ chiến
-      const minionTypes: MonsterType[] = ['skeleton', 'imp', 'slime'];
+      // 2 quái thường trợ chiến theo tầng
       for (let i = 0; i < 2; i++) {
         const mType = minionTypes[Math.floor(Math.random() * minionTypes.length)];
         const mConfig = this.createRegularMonsterConfig(mType, floor, statScale);
@@ -402,9 +452,17 @@ export class BattleScene extends Phaser.Scene {
       }
 
     } else {
-      // Phòng thường: Spawn 3 - 5 quái vật thường (skeleton, slime, imp)
+      // Phòng thường: Spawn 3 - 5 quái vật theo pool tầng
       const count = Math.min(5, 3 + Math.floor((floor - 1) / 2));
-      const pool: MonsterType[] = ['skeleton', 'slime', 'imp'];
+      let pool: MonsterType[];
+
+      if (floor === 1) {
+        pool = ['skeleton', 'skeleton_archer', 'slime', 'ghoul'];
+      } else if (floor === 2) {
+        pool = ['hellhound', 'imp', 'cultist'];
+      } else {
+        pool = ['void_eye', 'stalker', 'tentacle'];
+      }
 
       const spawnCoords: { x: number; y: number }[] = [];
       if (count === 3) {
@@ -436,6 +494,35 @@ export class BattleScene extends Phaser.Scene {
 
   private createRegularMonsterConfig(type: MonsterType, floor: number, statScale: number): MonsterConfig {
     switch (type) {
+      // --- Floor 1: Catacombs ---
+      case 'skeleton':
+        return {
+          type: 'skeleton',
+          name: 'Chiến Binh Xương',
+          maxHp: Math.round(76 * statScale),
+          atk: Math.round(11 * statScale),
+          def: 6,
+          speed: 65,
+          range: 38,
+          attackCooldown: 1.3,
+          goldValue: 7 + floor * 2,
+          soulValue: 2 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'skeleton_archer':
+        return {
+          type: 'skeleton_archer',
+          name: 'Xạ Thủ Xương',
+          maxHp: Math.round(58 * statScale),
+          atk: Math.round(14 * statScale),
+          def: 3,
+          speed: 55,
+          range: 175,
+          attackCooldown: 1.6,
+          goldValue: 8 + floor * 2,
+          soulValue: 3 + Math.floor(floor / 2),
+          floor: floor
+        };
       case 'slime':
         return {
           type: 'slime',
@@ -450,33 +537,181 @@ export class BattleScene extends Phaser.Scene {
           soulValue: 2,
           floor: floor
         };
-      case 'imp':
+      case 'ghoul':
         return {
-          type: 'imp',
-          name: 'Tiểu Quỷ Hư Vô',
-          maxHp: Math.round(52 * statScale),
-          atk: Math.round(13 * statScale),
-          def: 0,
-          speed: 75,
-          range: 130,
-          attackCooldown: 1.6,
+          type: 'ghoul',
+          name: 'Ngạ Quỷ Ăn Xác',
+          maxHp: Math.round(88 * statScale),
+          atk: Math.round(14 * statScale),
+          def: 4,
+          speed: 105,
+          range: 42,
+          attackCooldown: 0.95,
           goldValue: 9 + floor * 2,
           soulValue: 3 + Math.floor(floor / 2),
           floor: floor
         };
-      case 'skeleton':
-      default:
+      case 'boss_lich':
         return {
-          type: 'skeleton',
-          name: 'Chiến Binh Xương',
-          maxHp: Math.round(76 * statScale),
-          atk: Math.round(11 * statScale),
+          type: 'boss_lich',
+          name: 'Lich Vương Tử Linh',
+          maxHp: Math.round(560 * (1 + (floor - 1) * 0.35)),
+          atk: Math.round(24 * (1 + (floor - 1) * 0.22)),
+          def: 12,
+          speed: 48,
+          range: 160,
+          attackCooldown: 1.6,
+          goldValue: 80 + floor * 15,
+          soulValue: 40 + floor * 10,
+          isBoss: true,
+          floor: floor
+        };
+
+      // --- Floor 2: Inferno ---
+      case 'hellhound':
+        return {
+          type: 'hellhound',
+          name: 'Chó Săn Địa Ngục',
+          maxHp: Math.round(96 * statScale),
+          atk: Math.round(16 * statScale),
+          def: 5,
+          speed: 115,
+          range: 44,
+          attackCooldown: 1.0,
+          goldValue: 10 + floor * 2,
+          soulValue: 3 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'imp':
+        return {
+          type: 'imp',
+          name: 'Tiểu Quỷ Hư Vô',
+          maxHp: Math.round(54 * statScale),
+          atk: Math.round(13 * statScale),
+          def: 1,
+          speed: 75,
+          range: 135,
+          attackCooldown: 1.5,
+          goldValue: 9 + floor * 2,
+          soulValue: 3 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'cultist':
+        return {
+          type: 'cultist',
+          name: 'Cuồng Tín Hỏa Giáo',
+          maxHp: Math.round(90 * statScale),
+          atk: Math.round(17 * statScale),
           def: 6,
           speed: 65,
-          range: 38,
-          attackCooldown: 1.3,
-          goldValue: 7 + floor * 2,
-          soulValue: 2 + Math.floor(floor / 2),
+          range: 70,
+          attackCooldown: 1.35,
+          goldValue: 11 + floor * 2,
+          soulValue: 4 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'golem':
+        return {
+          type: 'golem',
+          name: 'Golem Nham Thạch',
+          maxHp: Math.round(220 * statScale),
+          atk: Math.round(24 * statScale),
+          def: 18,
+          speed: 45,
+          range: 45,
+          attackCooldown: 1.8,
+          goldValue: 18 + floor * 3,
+          soulValue: 6 + floor,
+          floor: floor
+        };
+      case 'boss_ignis':
+        return {
+          type: 'boss_ignis',
+          name: 'Hỏa Ma Tống Xuất Ignis',
+          maxHp: Math.round(760 * (1 + (floor - 1) * 0.35)),
+          atk: Math.round(30 * (1 + (floor - 1) * 0.25)),
+          def: 18,
+          speed: 50,
+          range: 55,
+          attackCooldown: 1.5,
+          goldValue: 100 + floor * 15,
+          soulValue: 50 + floor * 10,
+          isBoss: true,
+          floor: floor
+        };
+
+      // --- Floor 3: Void ---
+      case 'void_eye':
+        return {
+          type: 'void_eye',
+          name: 'Mắt Ma Hư Vô',
+          maxHp: Math.round(92 * statScale),
+          atk: Math.round(20 * statScale),
+          def: 4,
+          speed: 60,
+          range: 180,
+          attackCooldown: 1.7,
+          goldValue: 12 + floor * 2,
+          soulValue: 4 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'stalker':
+        return {
+          type: 'stalker',
+          name: 'Kẻ Săn Mồi Bóng Đêm',
+          maxHp: Math.round(115 * statScale),
+          atk: Math.round(23 * statScale),
+          def: 7,
+          speed: 120,
+          range: 44,
+          attackCooldown: 0.9,
+          goldValue: 14 + floor * 2,
+          soulValue: 5 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'necromancer':
+        return {
+          type: 'necromancer',
+          name: 'Pháp Sư Chiêu Hồn',
+          maxHp: Math.round(150 * statScale),
+          atk: Math.round(20 * statScale),
+          def: 10,
+          speed: 55,
+          range: 150,
+          attackCooldown: 1.8,
+          goldValue: 16 + floor * 2,
+          soulValue: 5 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'tentacle':
+        return {
+          type: 'tentacle',
+          name: 'Xúc Tu Vực Thẳm',
+          maxHp: Math.round(250 * statScale),
+          atk: Math.round(27 * statScale),
+          def: 15,
+          speed: 0,
+          range: 115,
+          attackCooldown: 1.4,
+          goldValue: 15 + floor * 2,
+          soulValue: 5 + Math.floor(floor / 2),
+          floor: floor
+        };
+      case 'boss_sovereign':
+      case 'boss':
+      default:
+        return {
+          type: 'boss_sovereign',
+          name: `Chúa Tể Hư Vô Sovereign`,
+          maxHp: Math.round(1020 * (1 + (floor - 1) * 0.35)),
+          atk: Math.round(36 * (1 + (floor - 1) * 0.25)),
+          def: 22,
+          speed: 55,
+          range: 65,
+          attackCooldown: 1.4,
+          goldValue: 130 + floor * 15,
+          soulValue: 65 + floor * 10,
+          isBoss: true,
           floor: floor
         };
     }
@@ -492,7 +727,10 @@ export class BattleScene extends Phaser.Scene {
     const classNames: Record<HeroClass, string> = {
       knight: 'Huyết Hiệp Sĩ',
       mage: 'Phù Thủy Hư Vô',
-      rogue: 'Sát Thủ Bóng Đêm'
+      rogue: 'Sát Thủ Bóng Đêm',
+      paladin: 'Thánh Quang Hiệp Sĩ',
+      ranger: 'Thiện Xạ Băng Tuyết',
+      warlock: 'Thuật Sĩ Hắc Ám'
     };
 
     // Hero Class & Level Text
@@ -680,8 +918,7 @@ export class BattleScene extends Phaser.Scene {
     this.bossBarContainer = this.add.container(480, 24);
     this.bossBarContainer.setDepth(100);
 
-    const floor = this.floor || this.node?.floor || 1;
-    const titleText = this.add.text(0, 0, `👑 CHÚA TỂ HƯ VÔ - TẦNG ${floor} 👑`, {
+    const titleText = this.add.text(0, 0, `👑 ${this.bossMonster.monsterConfig.name.toUpperCase()} 👑`, {
       fontFamily: 'sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',
@@ -777,35 +1014,59 @@ export class BattleScene extends Phaser.Scene {
     });
 
     // Cập nhật từng Quái vật
-    for (const monster of this.monsters) {
-      if (!monster.isDead) {
-        monster.updateMonster(time, effectiveDelta, this.hero.x, this.hero.y, (atk) => {
-          if (this.hero.isDead) return;
-          const result = this.hero.takeDamage(atk, monster);
-          this.audio.playHit();
-          this.cameras.main.shake(70, 0.0035 * this.gameSpeed);
+    const summonedMonsters: Monster[] = [];
+    const currentFloor = this.floor || this.node?.floor || 1;
+    const statScale = 1 + (currentFloor - 1) * 0.18;
 
-          if (result.isDead) {
-            this.handleHeroDefeat();
-          }
-        }, (aoeX, aoeY, radius, dmg) => {
-          // Boss AoE telegraph hit
-          if (this.hero.isDead) return;
-          this.particles.createFireExplosion(aoeX, aoeY, radius);
-          const dist = Phaser.Math.Distance.Between(aoeX, aoeY, this.hero.x, this.hero.y);
-          if (dist <= radius) {
-            const result = this.hero.takeDamage(dmg, monster);
+    for (const monster of [...this.monsters]) {
+      if (!monster.isDead) {
+        monster.updateMonster(
+          time,
+          effectiveDelta,
+          this.hero.x,
+          this.hero.y,
+          (atk) => {
+            if (this.hero.isDead) return;
+            const result = this.hero.takeDamage(atk, monster);
             this.audio.playHit();
-            this.cameras.main.shake(160, 0.015 * this.gameSpeed);
+            this.cameras.main.shake(70, 0.0035 * this.gameSpeed);
+
             if (result.isDead) {
               this.handleHeroDefeat();
             }
+          },
+          (aoeX, aoeY, radius, dmg) => {
+            // Boss AoE telegraph hit
+            if (this.hero.isDead) return;
+            this.particles.createFireExplosion(aoeX, aoeY, radius);
+            const dist = Phaser.Math.Distance.Between(aoeX, aoeY, this.hero.x, this.hero.y);
+            if (dist <= radius) {
+              const result = this.hero.takeDamage(dmg, monster);
+              this.audio.playHit();
+              this.cameras.main.shake(160, 0.015 * this.gameSpeed);
+              if (result.isDead) {
+                this.handleHeroDefeat();
+              }
+            }
+          },
+          (summonType, sX, sY) => {
+            // Boss summon callback (e.g. boss_lich summoning skeletons)
+            const sCfg = this.createRegularMonsterConfig(summonType, currentFloor, statScale);
+            sCfg.name = `Triệu Hồi ${sCfg.name}`;
+            sCfg.maxHp = Math.round(sCfg.maxHp * 0.7);
+            const summoned = new Monster(this, sX, sY, sCfg);
+            summonedMonsters.push(summoned);
+            this.particles.createHitSparks(sX, sY, 0x22d3ee);
           }
-        });
+        );
       } else {
         // Nếu quái chết bởi hiệu ứng độc/lửa/thorns
         this.handleMonsterKilled(monster);
       }
+    }
+
+    if (summonedMonsters.length > 0) {
+      this.monsters.push(...summonedMonsters);
     }
 
     // Kiểm tra Hero còn sống
@@ -848,7 +1109,10 @@ export class BattleScene extends Phaser.Scene {
     const classNames: Record<HeroClass, string> = {
       knight: 'Huyết Hiệp Sĩ',
       mage: 'Phù Thủy Hư Vô',
-      rogue: 'Sát Thủ Bóng Đêm'
+      rogue: 'Sát Thủ Bóng Đêm',
+      paladin: 'Thánh Quang Hiệp Sĩ',
+      ranger: 'Thiện Xạ Băng Tuyết',
+      warlock: 'Thuật Sĩ Hắc Ám'
     };
     this.heroClassText.setText(`${classNames[this.hero.heroClass]} - Lv.${this.hero.stats.level}`);
 
@@ -911,7 +1175,17 @@ export class BattleScene extends Phaser.Scene {
 
     const gold = m.monsterConfig.goldValue;
     const souls = m.monsterConfig.soulValue;
-    const exp = m.isBoss ? 130 : (m.monsterConfig.type === 'golem' || m.monsterConfig.type === 'necromancer' ? 50 : 20);
+    const currentFloor = this.floor || this.node?.floor || 1;
+    let exp = 20;
+    if (m.isBoss) {
+      exp = 140 + currentFloor * 25;
+    } else if (['golem', 'necromancer'].includes(m.monsterConfig.type)) {
+      exp = 55;
+    } else if (['ghoul', 'hellhound', 'cultist', 'stalker', 'tentacle', 'void_eye'].includes(m.monsterConfig.type)) {
+      exp = 30 + currentFloor * 4;
+    } else {
+      exp = 18 + currentFloor * 2;
+    }
 
     // Cộng thưởng cho hero
     this.hero.stats.gold += gold;

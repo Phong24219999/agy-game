@@ -1,5 +1,6 @@
 import { EquipmentItem, ItemRarity, SynergyType } from '../types/game';
 import { SeededRNG } from './SeededRNG';
+import { SHOP_ITEMS } from './SynergySystem';
 
 /**
  * Kho dược phẩm hồi phục xuất hiện cố định tại Ô 1 của Cửa hàng.
@@ -11,6 +12,7 @@ export const POTION_CATALOG: EquipmentItem[] = [
     name: 'Bình Dược Huyết Sắc',
     category: 'relic',
     rarity: 'common',
+    icon: 'icon_potion_hp',
     description: 'Hồi phục ngay lập tức 80 HP khi mua.',
     cost: 35,
     stats: { hp: 80 }
@@ -20,6 +22,7 @@ export const POTION_CATALOG: EquipmentItem[] = [
     name: 'Tinh Chất Sinh Lực',
     category: 'relic',
     rarity: 'common',
+    icon: 'icon_potion_hp',
     description: 'Dược dịch tinh khiết hồi phục 110 HP tức thì.',
     cost: 42,
     stats: { hp: 110 }
@@ -29,6 +32,7 @@ export const POTION_CATALOG: EquipmentItem[] = [
     name: 'Thần Dược Phục Hồi',
     category: 'relic',
     rarity: 'common',
+    icon: 'icon_potion_hp',
     description: 'Hồi phục 140 HP, ổn định sinh mệnh trước hiểm nguy.',
     cost: 45,
     stats: { hp: 140 }
@@ -44,9 +48,10 @@ export const POTION_CATALOG: EquipmentItem[] = [
  */
 export const FULL_EQUIPMENT_CATALOG: EquipmentItem[] = [
   // ==========================================
-  // POTIONS (3 món - Giá 30 - 45 Vàng)
+  // POTIONS & SHOP EXPANSION ITEMS
   // ==========================================
   ...POTION_CATALOG,
+  ...SHOP_ITEMS,
 
   // ==========================================
   // 1. COMMON (7 món - Giá 35 - 55 Vàng)

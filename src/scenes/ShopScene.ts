@@ -314,19 +314,35 @@ export class ShopScene extends Phaser.Scene {
 
     const rarityConfig = this.getRarityConfig(item.rarity);
 
-    // Aura effect for Epic and Legendary
+    // Glowing Aura effect for Rare, Epic, and Legendary
     let auraGraphic: Phaser.GameObjects.Rectangle | undefined;
     let auraTween: Phaser.Tweens.Tween | undefined;
 
-    if (item.rarity === 'epic') {
-      // Epic: Viền tím hoàng gia #9f7aea với nhấp nháy hào quang
-      auraGraphic = this.add.rectangle(0, 0, cardW + 8, cardH + 8, 0x9f7aea, 0.22);
-      auraGraphic.setStrokeStyle(2.5, 0xd6bcfa, 0.8);
+    if (item.rarity === 'rare') {
+      // Rare: Viền lam #3182ce với nhấp nháy hào quang nhẹ
+      auraGraphic = this.add.rectangle(0, 0, cardW + 6, cardH + 6, 0x3182ce, 0.18);
+      auraGraphic.setStrokeStyle(2, 0x63b3ed, 0.7);
       cardContainer.add(auraGraphic);
 
       auraTween = this.tweens.add({
         targets: auraGraphic,
-        alpha: { from: 0.2, to: 0.65 },
+        alpha: { from: 0.15, to: 0.5 },
+        scaleX: { from: 1.0, to: 1.02 },
+        scaleY: { from: 1.0, to: 1.015 },
+        duration: 1300,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    } else if (item.rarity === 'epic') {
+      // Epic: Viền tím hoàng gia #805ad5 với hào quang rực rỡ
+      auraGraphic = this.add.rectangle(0, 0, cardW + 8, cardH + 8, 0x805ad5, 0.25);
+      auraGraphic.setStrokeStyle(2.5, 0xb794f4, 0.85);
+      cardContainer.add(auraGraphic);
+
+      auraTween = this.tweens.add({
+        targets: auraGraphic,
+        alpha: { from: 0.22, to: 0.7 },
         scaleX: { from: 1.0, to: 1.03 },
         scaleY: { from: 1.0, to: 1.02 },
         duration: 1100,
@@ -335,14 +351,14 @@ export class ShopScene extends Phaser.Scene {
         ease: 'Sine.easeInOut'
       });
     } else if (item.rarity === 'legendary') {
-      // Legendary: Viền vàng kim #ecc94b rực rỡ
-      auraGraphic = this.add.rectangle(0, 0, cardW + 12, cardH + 12, 0xecc94b, 0.35);
+      // Legendary: Viền vàng kim #ecc94b rực rỡ chói lòa
+      auraGraphic = this.add.rectangle(0, 0, cardW + 12, cardH + 12, 0xecc94b, 0.38);
       auraGraphic.setStrokeStyle(3, 0xfff08a, 0.95);
       cardContainer.add(auraGraphic);
 
       auraTween = this.tweens.add({
         targets: auraGraphic,
-        alpha: { from: 0.3, to: 0.85 },
+        alpha: { from: 0.35, to: 0.9 },
         scaleX: { from: 1.0, to: 1.04 },
         scaleY: { from: 1.0, to: 1.03 },
         duration: 800,
@@ -896,18 +912,37 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private getItemIconKey(item: EquipmentItem): string {
-    if (item.id.includes('potion')) return 'torch_flame';
+    if (item.icon && this.textures.exists(item.icon)) return item.icon;
+    const id = item.id.toLowerCase();
+    if (id.includes('potion_hp') || id.includes('health_potion') || id.includes('vitality') || id.includes('rejuvenation')) return 'icon_potion_hp';
+    if (id.includes('potion_speed') || id.includes('speed_potion')) return 'icon_potion_speed';
+    if (id.includes('bow')) return 'icon_bow_frost';
+    if (id.includes('hammer')) return 'icon_hammer_thunder';
+    if (id.includes('scythe')) return 'icon_scythe_dark';
+    if (id.includes('dagger')) return 'icon_daggers_poison';
+    if (id.includes('staff') || id.includes('orb')) return 'icon_staff_arcane';
+    if (id.includes('holy_sword') || id.includes('ragnarok')) return 'icon_sword_holy';
+    if (id.includes('iron') || id.includes('broadsword') || id.includes('scimitar')) return 'icon_sword_iron';
+    if (id.includes('titan') || id.includes('plate') || id.includes('cuirass')) return 'icon_plate_titan';
+    if (id.includes('robe')) return 'icon_robe_void';
+    if (id.includes('cloak') || id.includes('tunic')) return 'icon_cloak_ranger';
+    if (id.includes('aegis')) return 'icon_shield_aegis';
+    if (id.includes('tower_shield') || id.includes('oak_shield') || id.includes('spiked_mail')) return 'icon_shield_tower';
+    if (id.includes('scroll')) return 'icon_scroll_lightning';
+    if (id.includes('gold') || id.includes('coin')) return 'icon_gold_coin';
+    if (id.includes('gem') || id.includes('ring') || id.includes('amulet') || id.includes('charm') || id.includes('pendant')) return 'icon_soul_gem';
+
     if (item.synergy === 'fire') return 'icon_fire';
     if (item.synergy === 'frost') return 'icon_frost';
     if (item.synergy === 'lightning') return 'icon_lightning';
     if (item.synergy === 'vampiric') return 'icon_vampire';
     if (item.synergy === 'thorns') return 'icon_thorns';
     if (item.synergy === 'summoner') return 'icon_summon';
-    if (item.category === 'weapon') return 'icon_sword';
-    if (item.category === 'armor') return 'icon_shield';
+    if (item.category === 'weapon') return 'icon_sword_iron';
+    if (item.category === 'armor') return 'icon_shield_tower';
     if (item.stats?.critRate || item.stats?.critDmg) return 'icon_crit';
     if (item.stats?.speed) return 'icon_boot';
-    return 'icon_crit';
+    return 'icon_sword_iron';
   }
 
   private getRarityConfig(rarity: string): { name: string; colorNum: number; colorHex: string } {
@@ -915,11 +950,11 @@ export class ShopScene extends Phaser.Scene {
       case 'common':
         return { name: 'Thường', colorNum: 0xa0aec0, colorHex: '#a0aec0' };
       case 'rare':
-        return { name: 'Hiếm', colorNum: 0x3182ce, colorHex: '#63b3ed' };
+        return { name: 'Hiếm', colorNum: 0x3182ce, colorHex: '#3182ce' };
       case 'epic':
-        return { name: 'Sử Thi', colorNum: 0x9f7aea, colorHex: '#b794f4' };
+        return { name: 'Sử Thi', colorNum: 0x805ad5, colorHex: '#805ad5' };
       case 'legendary':
-        return { name: 'Huyền Thoại', colorNum: 0xecc94b, colorHex: '#f6e05e' };
+        return { name: 'Huyền Thoại', colorNum: 0xecc94b, colorHex: '#ecc94b' };
       default:
         return { name: 'Thường', colorNum: 0xa0aec0, colorHex: '#a0aec0' };
     }

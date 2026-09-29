@@ -156,6 +156,31 @@ export const ALL_PERK_CARDS: PerkCard[] = [
     description: 'Gia tăng +40 Máu tối đa vĩnh viễn trong run.',
     stats: { maxHp: 40, hp: 40 }
   },
+  {
+    id: 'ranger_ambush',
+    name: 'Phục Kích Rừng Sâu',
+    rarity: 'common',
+    icon: 'icon_cloak_ranger',
+    description: '+10% Tỉ lệ Bạo kích và +20 Tốc độ di chuyển.',
+    stats: { critRate: 0.1, speed: 20 }
+  },
+  {
+    id: 'glacial_shards',
+    name: 'Mảnh Băng Sắc Nhọn',
+    rarity: 'common',
+    synergy: 'frost',
+    icon: 'icon_frost',
+    description: '+5 Công, +5 Giáp, đòn đánh có 30% phóng mảnh băng làm chậm kẻ địch.',
+    stats: { atk: 5, def: 5 }
+  },
+  {
+    id: 'iron_discipline',
+    name: 'Kỷ Luật Thép',
+    rarity: 'common',
+    icon: 'icon_sword_iron',
+    description: '+5 Sát thương, +25 Máu tối đa và +5% Giáp giảm sát thương.',
+    stats: { atk: 5, maxHp: 25, hp: 25, def: 5 }
+  },
 
   // ==========================================
   // RARE PERKS (9 thẻ - Tỷ lệ vừa phải, tăng ở Elite)
@@ -238,6 +263,51 @@ export const ALL_PERK_CARDS: PerkCard[] = [
     description: '+12% Né đòn, +20 Tốc chạy và +30 Máu tối đa.',
     stats: { dodgeRate: 0.12, speed: 20, maxHp: 30, hp: 30 }
   },
+  {
+    id: 'frost_arrow',
+    name: 'Mũi Tên Băng Giá',
+    rarity: 'rare',
+    synergy: 'frost',
+    icon: 'icon_bow_frost',
+    description: '+6 Sát thương, đòn đánh tầm xa làm chậm quái 25% và +12% Tốc đánh.',
+    stats: { atk: 6, attackSpeed: 0.12 }
+  },
+  {
+    id: 'thunder_smash',
+    name: 'Kích Nổ Sấm Sét',
+    rarity: 'rare',
+    synergy: 'lightning',
+    icon: 'icon_hammer_thunder',
+    description: '+8 Sát thương, +8% Chí mạng; đòn đánh nặng giải phóng xung lôi chấn.',
+    stats: { atk: 8, critRate: 0.08 }
+  },
+  {
+    id: 'toxic_daggers',
+    name: 'Đoản Đao Kịch Độc',
+    rarity: 'rare',
+    synergy: 'vampiric',
+    icon: 'icon_daggers_poison',
+    description: '+18% Tốc độ đánh và +6% Hút máu, đòn đánh tích lũy độc tố.',
+    stats: { attackSpeed: 0.18, lifeSteal: 0.06 }
+  },
+  {
+    id: 'void_weave',
+    name: 'Dệt Lưới Hư Vô',
+    rarity: 'rare',
+    synergy: 'summoner',
+    icon: 'icon_robe_void',
+    description: 'Giảm 15% hồi chiêu kỹ năng, đệ xương nhận thêm 30% giáp chống đỡ.',
+    stats: { def: 8, cooldownReduction: 0.15 }
+  },
+  {
+    id: 'arcane_overload',
+    name: 'Quá Tải Bí Thuật',
+    rarity: 'rare',
+    synergy: 'lightning',
+    icon: 'icon_staff_arcane',
+    description: '+9 Sát thương, -10% Hồi chiêu; mỗi đòn đánh phóng tia ma pháp giật lan.',
+    stats: { atk: 9, cooldownReduction: 0.1 }
+  },
 
   // ==========================================
   // EPIC PERKS (7 thẻ - Hiếm gặp ở phòng thường, xuất hiện ở Elite/Boss)
@@ -304,6 +374,42 @@ export const ALL_PERK_CARDS: PerkCard[] = [
     description: '+80 Máu tối đa, +10 Sát thương và +12 Giáp bảo vệ.',
     stats: { maxHp: 80, hp: 80, atk: 10, def: 12 }
   },
+  {
+    id: 'reaper_harvest',
+    name: 'Gặt Hái Linh Hồn',
+    rarity: 'epic',
+    synergy: 'summoner',
+    icon: 'icon_scythe_dark',
+    description: '+12 Công, -12% Hồi chiêu; mỗi 3 quái hạ gục hồi 15 HP và gọi 1 Đệ Xương.',
+    stats: { atk: 12, cooldownReduction: 0.12 }
+  },
+  {
+    id: 'holy_radiance',
+    name: 'Thánh Quang Hộ Thể',
+    rarity: 'epic',
+    synergy: 'fire',
+    icon: 'icon_sword_holy',
+    description: '+14 Công, +50 HP; hào quang lửa thánh thiêu đốt 25 ST/giây quái vật cận kề.',
+    stats: { atk: 14, maxHp: 50, hp: 50 }
+  },
+  {
+    id: 'colossus_bastion',
+    name: 'Pháo Đài Khổng Lồ',
+    rarity: 'epic',
+    synergy: 'thorns',
+    icon: 'icon_plate_titan',
+    description: '+100 Máu tối đa, phản 30 ST gai chuẩn và +12% Giáp bảo vệ.',
+    stats: { maxHp: 100, hp: 100, thorns: 30, def: 12 }
+  },
+  {
+    id: 'vampiric_frenzy',
+    name: 'Huyết Cuồng Nộ',
+    rarity: 'epic',
+    synergy: 'vampiric',
+    icon: 'icon_vampire',
+    description: '+25% Tốc độ đánh và +12% Hút máu, nhân đôi hiệu quả khi máu dưới 50%.',
+    stats: { attackSpeed: 0.25, lifeSteal: 0.12 }
+  },
 
   // ==========================================
   // LEGENDARY PERKS (4 thẻ - Cực phẩm tối thượng, chỉ rơi ở Boss/rương bí mật)
@@ -343,6 +449,24 @@ export const ALL_PERK_CARDS: PerkCard[] = [
     icon: 'icon_summon',
     description: 'Giới hạn đệ xương tăng lên 6, đệ chia sẻ gánh chịu 40% sát thương cho bạn.',
     stats: { maxHp: 60, hp: 60, def: 15 }
+  },
+  {
+    id: 'aegis_bulwark',
+    name: 'Thần Khiên Bất Diệt',
+    rarity: 'legendary',
+    synergy: 'thorns',
+    icon: 'icon_shield_aegis',
+    description: '+150 Máu tối đa, +25% Giáp, phản 50 ST gai và tạo khiên chắn 120 HP khi nguy cấp.',
+    stats: { maxHp: 150, hp: 150, def: 25, thorns: 50 }
+  },
+  {
+    id: 'thunderstorm_wrath',
+    name: 'Cơn Thịnh Nộ Của Thần Sấm',
+    rarity: 'legendary',
+    synergy: 'lightning',
+    icon: 'icon_hammer_thunder',
+    description: '+35 Công, +25% Bạo kích, mỗi đòn đánh chí mạng tạo bão sấm hủy diệt toàn sàn.',
+    stats: { atk: 35, critRate: 0.25, critDmg: 0.5 }
   }
 ];
 
@@ -392,9 +516,184 @@ export const SHOP_ITEMS: EquipmentItem[] = [
     name: 'Thần Dược Hồi Sinh',
     category: 'relic',
     rarity: 'common',
+    icon: 'icon_potion_hp',
     description: 'Hồi phục ngay lập tức 80 HP.',
     cost: 30,
     stats: { hp: 80 }
+  },
+  {
+    id: 'shop_frost_bow',
+    name: 'Cung Băng Tuyết Ngàn Năm',
+    category: 'weapon',
+    rarity: 'rare',
+    synergy: 'frost',
+    icon: 'icon_bow_frost',
+    description: '+12 Sát thương, +18% Tốc đánh, bắn tên băng làm chậm quái 25%.',
+    cost: 60,
+    stats: { atk: 12, attackSpeed: 0.18, def: 5 }
+  },
+  {
+    id: 'shop_tempest_bow',
+    name: 'Lôi Phong Thần Cung',
+    category: 'weapon',
+    rarity: 'epic',
+    synergy: 'lightning',
+    icon: 'icon_bow_frost',
+    description: '+20 Sát thương, +28% Tốc đánh, +14% Bạo kích; giải phóng bão tên sấm sét.',
+    cost: 86,
+    stats: { atk: 20, attackSpeed: 0.28, critRate: 0.14 }
+  },
+  {
+    id: 'shop_thunder_hammer',
+    name: 'Chiến Chuỳ Lôi Đình',
+    category: 'weapon',
+    rarity: 'rare',
+    synergy: 'lightning',
+    icon: 'icon_hammer_thunder',
+    description: '+18 Sát thương, +10% Bạo kích; đòn đập lan toả xung điện gây tê liệt.',
+    cost: 65,
+    stats: { atk: 18, critRate: 0.1, speed: -5 }
+  },
+  {
+    id: 'shop_molten_hammer',
+    name: 'Dung Nham Thần Chuỳ',
+    category: 'weapon',
+    rarity: 'epic',
+    synergy: 'fire',
+    icon: 'icon_hammer_thunder',
+    description: '+30 Sát thương, +45% ST bạo kích; đòn đánh nổ tung chấn động dung nham.',
+    cost: 88,
+    stats: { atk: 30, critDmg: 0.45, thorns: 15 }
+  },
+  {
+    id: 'shop_dark_scythe',
+    name: 'Lưỡi Hái Hư Vô',
+    category: 'weapon',
+    rarity: 'epic',
+    synergy: 'summoner',
+    icon: 'icon_scythe_dark',
+    description: '+22 Sát thương, -15% Hồi chiêu; mỗi quái chết cường hoá linh hồn Đệ Xương.',
+    cost: 85,
+    stats: { atk: 22, cooldownReduction: 0.15, maxHp: 40, hp: 40 }
+  },
+  {
+    id: 'shop_blood_scythe',
+    name: 'Huyết Nguyệt Liêm',
+    category: 'weapon',
+    rarity: 'rare',
+    synergy: 'vampiric',
+    icon: 'icon_scythe_dark',
+    description: '+16 Sát thương, +12% Hút máu; hồi phục sinh mệnh sau mỗi nhát chém.',
+    cost: 64,
+    stats: { atk: 16, lifeSteal: 0.12, maxHp: 30, hp: 30 }
+  },
+  {
+    id: 'shop_poison_daggers',
+    name: 'Song Đao Độc Xà',
+    category: 'weapon',
+    rarity: 'rare',
+    synergy: 'vampiric',
+    icon: 'icon_daggers_poison',
+    description: '+10 Sát thương, +22% Tốc đánh, +8% Hút máu; tẩm kịch độc rút máu quái.',
+    cost: 55,
+    stats: { atk: 10, attackSpeed: 0.22, lifeSteal: 0.08 }
+  },
+  {
+    id: 'shop_arcane_staff',
+    name: 'Pháp Trượng Bí Thuật',
+    category: 'weapon',
+    rarity: 'rare',
+    synergy: 'lightning',
+    icon: 'icon_staff_arcane',
+    description: '+15 Sát thương, -12% Hồi chiêu, +8% Bạo kích; phóng chuỗi ma sét lan tỏa.',
+    cost: 62,
+    stats: { atk: 15, cooldownReduction: 0.12, critRate: 0.08 }
+  },
+  {
+    id: 'shop_holy_sword',
+    name: 'Thánh Kiếm Quang Huy',
+    category: 'weapon',
+    rarity: 'epic',
+    synergy: 'fire',
+    icon: 'icon_sword_holy',
+    description: '+26 Sát thương, +15% Bạo kích, +50 HP; ánh thánh quang thiêu đốt tà linh.',
+    cost: 90,
+    stats: { atk: 26, critRate: 0.15, maxHp: 50, hp: 50 }
+  },
+  {
+    id: 'shop_iron_broadsword',
+    name: 'Đại Kiếm Thép Rèn',
+    category: 'weapon',
+    rarity: 'common',
+    icon: 'icon_sword_iron',
+    description: '+8 Sát thương, +4% Giáp bảo hộ; vũ khí cân bằng, uy lực đáng tin cậy.',
+    cost: 35,
+    stats: { atk: 8, def: 4 }
+  },
+  {
+    id: 'shop_titan_plate',
+    name: 'Đại Giáp Thần Titan',
+    category: 'armor',
+    rarity: 'rare',
+    synergy: 'thorns',
+    icon: 'icon_plate_titan',
+    description: '+90 Máu tối đa, +18% Giáp; phản 16 ST gai chuẩn lên kẻ dám tấn công.',
+    cost: 70,
+    stats: { maxHp: 90, hp: 90, def: 18, thorns: 16 }
+  },
+  {
+    id: 'shop_void_robe',
+    name: 'Pháp Bào Hư Vô',
+    category: 'armor',
+    rarity: 'rare',
+    synergy: 'summoner',
+    icon: 'icon_robe_void',
+    description: '+45 Máu, +8% Giáp, -18% Hồi chiêu; khuếch đại ma pháp bóng tối.',
+    cost: 58,
+    stats: { maxHp: 45, hp: 45, def: 8, cooldownReduction: 0.18 }
+  },
+  {
+    id: 'shop_ranger_cloak',
+    name: 'Áo Choàng Du Hiệp',
+    category: 'armor',
+    rarity: 'common',
+    synergy: 'frost',
+    icon: 'icon_cloak_ranger',
+    description: '+22 Tốc độ di chuyển, +12% Né đòn, +6% Giáp; lướt đi thoăn thoắt.',
+    cost: 45,
+    stats: { speed: 22, dodgeRate: 0.12, def: 6 }
+  },
+  {
+    id: 'shop_tower_shield',
+    name: 'Trọng Thuẫn Thành Lũy',
+    category: 'armor',
+    rarity: 'rare',
+    synergy: 'thorns',
+    icon: 'icon_shield_tower',
+    description: '+75 Máu, +20% Giáp, phản 22 ST gai; lá chắn vững chãi như pháo đài.',
+    cost: 68,
+    stats: { maxHp: 75, hp: 75, def: 20, thorns: 22 }
+  },
+  {
+    id: 'shop_aegis_shield',
+    name: 'Khiên Thần Rạng Đông',
+    category: 'armor',
+    rarity: 'epic',
+    synergy: 'fire',
+    icon: 'icon_shield_aegis',
+    description: '+120 Máu, +24% Giáp, +12 Công; khiên lửa thần hộ mệnh thiêu rụi kẻ địch.',
+    cost: 95,
+    stats: { maxHp: 120, hp: 120, def: 24, atk: 12 }
+  },
+  {
+    id: 'shop_speed_potion',
+    name: 'Bình Dược Tật Phong',
+    category: 'relic',
+    rarity: 'common',
+    icon: 'icon_potion_speed',
+    description: '+25 Tốc độ di chuyển và +10% Tốc đánh trong toàn bộ cuộc viễn chinh.',
+    cost: 40,
+    stats: { speed: 25, attackSpeed: 0.1 }
   }
 ];
 

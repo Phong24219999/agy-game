@@ -49,6 +49,9 @@ export class Hero extends Phaser.GameObjects.Container {
     if (heroClass === 'knight') this.skillMaxCooldown = 4.5;
     else if (heroClass === 'mage') this.skillMaxCooldown = 5.5;
     else if (heroClass === 'rogue') this.skillMaxCooldown = 3.5;
+    else if (heroClass === 'paladin') this.skillMaxCooldown = 5.0;
+    else if (heroClass === 'ranger') this.skillMaxCooldown = 3.8;
+    else if (heroClass === 'warlock') this.skillMaxCooldown = 4.2;
 
     // Sprite
     this.sprite = scene.add.sprite(0, 0, `hero_${heroClass}`);
@@ -75,8 +78,11 @@ export class Hero extends Phaser.GameObjects.Container {
   }
 
   public getOptimalRange(): number {
+    if (this.heroClass === 'ranger') return 220;
     if (this.heroClass === 'mage') return 160;
+    if (this.heroClass === 'warlock') return 140;
     if (this.heroClass === 'rogue') return 60;
+    if (this.heroClass === 'paladin') return 56;
     return 48; // knight melee
   }
 
@@ -145,8 +151,12 @@ export class Hero extends Phaser.GameObjects.Container {
       this.x += Math.cos(angle) * this.stats.speed * dt;
       this.y += Math.sin(angle) * this.stats.speed * dt;
       this.sprite.flipX = target.x < this.x;
-    } else if (this.heroClass === 'mage' && minDist < 90) {
-      // Mage kites away if monster is too close
+    } else if (
+      (this.heroClass === 'mage' && minDist < 90) ||
+      (this.heroClass === 'ranger' && minDist < 110) ||
+      (this.heroClass === 'warlock' && minDist < 80)
+    ) {
+      // Ranged heroes kite away if monster is too close
       const angle = Phaser.Math.Angle.Between(target.x, target.y, this.x, this.y);
       this.x += Math.cos(angle) * (this.stats.speed * 0.7) * dt;
       this.y += Math.sin(angle) * (this.stats.speed * 0.7) * dt;
@@ -237,6 +247,17 @@ export class Hero extends Phaser.GameObjects.Container {
     } else if (this.heroClass === 'rogue') {
       this.audio.playSlash();
       this.fireProjectile(target, 0x33dd66, 420);
+    } else if (this.heroClass === 'paladin') {
+      this.audio.playHit();
+      const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
+      this.particles.createSlashWave(this.x + Math.cos(angle) * 22, this.y + Math.sin(angle) * 22, angle, 45);
+      this.particles.createHitSparks(target.x, target.y, 0xfde047);
+    } else if (this.heroClass === 'ranger') {
+      this.audio.playSlash();
+      this.fireProjectile(target, 0x38bdf8, 480);
+    } else if (this.heroClass === 'warlock') {
+      this.audio.playMagic();
+      this.fireProjectile(target, 0xa855f7, 360);
     }
 
     if (isCrit) {
@@ -288,6 +309,12 @@ export class Hero extends Phaser.GameObjects.Container {
     const hasLightningCyclone = this.evolutions.some((e) => e.effectType === 'lightning_cyclone');
     const hasCocytusFreeze = this.evolutions.some((e) => e.effectType === 'cocytus_freeze');
     const hasVenomStorm = this.evolutions.some((e) => e.effectType === 'venom_storm');
+    const hasHolyConsecration = this.evolutions.some((e) => e.effectType === 'holy_consecration');
+    const hasWrathOfHeavens = this.evolutions.some((e) => e.effectType === 'wrath_of_heavens');
+    const hasBlizzardStorm = this.evolutions.some((e) => e.effectType === 'blizzard_storm');
+    const hasFrostBarrage = this.evolutions.some((e) => e.effectType === 'frost_barrage');
+    const hasAbyssalTorment = this.evolutions.some((e) => e.effectType === 'abyssal_torment');
+    const hasSoulHarvest = this.evolutions.some((e) => e.effectType === 'soul_harvest');
 
     if (this.heroClass === 'knight') {
       this.audio.playSlash();
@@ -413,6 +440,163 @@ export class Hero extends Phaser.GameObjects.Container {
         const knifeX = this.x + Math.cos(knifeAngle) * 75;
         const knifeY = this.y + Math.sin(knifeAngle) * 75;
         this.particles.createHitSparks(knifeX, knifeY, 0x33ff66);
+      }
+    } else if (this.heroClass === 'paladin') {
+      // Holy Smite: Creates holy circle damaging enemies and giving hero shield
+      this.audio.playLevelUp();
+      this.scene.cameras.main.shake(160, 0.009);
+
+      // Holy Circle visual effect on ground
+      const circleRadius = hasHolyConsecration ? 120 : 90;
+      const holyRing = this.scene.add.circle(this.x, this.y, 16, 0xfde047, 0.4);
+      holyRing.setStrokeStyle(3, 0xfef08a, 0.9);
+      holyRing.setDepth(20);
+
+      this.scene.tweens.add({
+        targets: holyRing,
+        radius: circleRadius,
+        alpha: 0,
+        duration: 450,
+        ease: 'Cubic.easeOut',
+        onComplete: () => holyRing.destroy()
+      });
+
+      // Upward golden ray sparkles
+      const sparkCount = hasWrathOfHeavens ? 12 : 6;
+      for (let i = 0; i < sparkCount; i++) {
+        const ang = (Math.PI * 2 * i) / sparkCount;
+        const px = this.x + Math.cos(ang) * (circleRadius * 0.6);
+        const py = this.y + Math.sin(ang) * (circleRadius * 0.6);
+        this.particles.createHitSparks(px, py, 0xfde047);
+      }
+
+      // Holy Shield granted to hero
+      const shieldBonus = hasHolyConsecration ? 1.5 : 1.0;
+      const shieldAmount = Math.round((this.stats.maxHp * 0.22 + this.stats.atk * 0.5) * shieldBonus);
+      this.addShield(shieldAmount);
+      this.damageText.showHeal(this.x, this.y - 20, shieldAmount);
+
+      // Damage all enemies in holy circle
+      monsters.forEach((m) => {
+        const dist = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
+        if (dist <= circleRadius) {
+          const dmgMultiplier = hasWrathOfHeavens ? 3.5 : 2.3;
+          const dmg = this.stats.atk * dmgMultiplier;
+          const res = m.takeDamage(dmg, true, 'fire');
+          this.particles.createHitSparks(m.x, m.y, 0xfde047);
+          this.damageText.showDamage(m.x, m.y, res.finalDamage, true, 'fire');
+          if (res.isDead) onMonsterKilled(m);
+        }
+      });
+    } else if (this.heroClass === 'ranger') {
+      // Frost Volley: Fires 5 piercing frost arrows freezing/slowing enemies
+      this.audio.playSlash();
+      this.scene.cameras.main.shake(120, 0.006);
+
+      const baseAngle = Phaser.Math.Angle.Between(this.x, this.y, primaryTarget.x, primaryTarget.y);
+      const arrowCount = hasFrostBarrage ? 9 : 5;
+      const spreadStep = hasFrostBarrage ? 0.12 : 0.16; // radians
+      const targetDistance = 270;
+
+      for (let i = 0; i < arrowCount; i++) {
+        const offset = (i - (arrowCount - 1) / 2) * spreadStep;
+        const arrowAngle = baseAngle + offset;
+        const destX = this.x + Math.cos(arrowAngle) * targetDistance;
+        const destY = this.y + Math.sin(arrowAngle) * targetDistance;
+
+        // Visual Frost Arrow projectile
+        const arrow = this.scene.add.rectangle(this.x, this.y, 16, 3, 0x38bdf8);
+        arrow.setStrokeStyle(1, 0xffffff);
+        arrow.setRotation(arrowAngle);
+        arrow.setDepth(32);
+
+        this.scene.tweens.add({
+          targets: arrow,
+          x: destX,
+          y: destY,
+          duration: 260,
+          ease: 'Linear',
+          onComplete: () => arrow.destroy()
+        });
+
+        // Pierce check: Hit all enemies within the trajectory cone
+        monsters.forEach((m) => {
+          if (!m.isDead) {
+            const d = Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y);
+            if (d <= targetDistance + 40) {
+              const mAngle = Phaser.Math.Angle.Between(this.x, this.y, m.x, m.y);
+              const angleDiff = Math.abs(Phaser.Math.Angle.Normalize(mAngle - arrowAngle));
+              if (angleDiff < 0.16 || angleDiff > Math.PI * 2 - 0.16) {
+                const dmg = this.stats.atk * 1.5;
+                const res = m.takeDamage(dmg, true, 'frost');
+                m.applyFreeze(hasBlizzardStorm ? 3.5 : 2.0);
+                this.particles.createHitSparks(m.x, m.y, 0x38bdf8);
+                this.damageText.showDamage(m.x, m.y, res.finalDamage, true, 'frost');
+                if (res.isDead) onMonsterKilled(m);
+              }
+            }
+          }
+        });
+      }
+    } else if (this.heroClass === 'warlock') {
+      // Soul Drain: Drains HP from closest 3 monsters and gains souls/shield
+      this.audio.playMagic();
+      this.scene.cameras.main.shake(140, 0.007);
+
+      const targetCount = hasAbyssalTorment ? 5 : 3;
+      const sortedMonsters = [...monsters]
+        .filter((m) => !m.isDead && Phaser.Math.Distance.Between(this.x, this.y, m.x, m.y) <= 220)
+        .sort((a, b) => Phaser.Math.Distance.Between(this.x, this.y, a.x, a.y) - Phaser.Math.Distance.Between(this.x, this.y, b.x, b.y))
+        .slice(0, targetCount);
+
+      const targetsToDrain = sortedMonsters.length > 0 ? sortedMonsters : (!primaryTarget.isDead ? [primaryTarget] : []);
+
+      let totalDrained = 0;
+
+      targetsToDrain.forEach((m) => {
+        // Necrotic siphon lightning bolt
+        this.particles.createLightningBolt(m.x, m.y, this.x, this.y);
+
+        // Soul orb flying back to warlock
+        const soulOrb = this.scene.add.circle(m.x, m.y, 5, 0xc084fc);
+        soulOrb.setStrokeStyle(1, 0x22c55e);
+        soulOrb.setDepth(35);
+        this.scene.tweens.add({
+          targets: soulOrb,
+          x: this.x,
+          y: this.y,
+          duration: 250,
+          ease: 'Quad.easeIn',
+          onComplete: () => soulOrb.destroy()
+        });
+
+        const drainDmg = this.stats.atk * 1.8;
+        const res = m.takeDamage(drainDmg, true, 'phys');
+        this.particles.createBloodSplat(m.x, m.y, 0x581c87);
+        this.damageText.showDamage(m.x, m.y, res.finalDamage, true, 'phys');
+        totalDrained += res.finalDamage;
+
+        // Soul Harvest: Summon skeleton if enemy dies
+        if (res.isDead) {
+          onMonsterKilled(m);
+          if (hasSoulHarvest && this.minions.length < 5) {
+            const minion = new Minion(this.scene, m.x, m.y, this.stats.atk * 0.4);
+            this.minions.push(minion);
+          }
+        }
+      });
+
+      if (totalDrained > 0) {
+        // Heal HP & Add Shield
+        const healAmt = Math.round(totalDrained * 0.45);
+        this.heal(healAmt);
+
+        const shieldAmt = Math.round(totalDrained * 0.35 + 10);
+        this.addShield(shieldAmt);
+
+        // Gain Souls
+        this.stats.souls += targetsToDrain.length;
+        this.damageText.showHeal(this.x, this.y - 20, shieldAmt);
       }
     }
   }

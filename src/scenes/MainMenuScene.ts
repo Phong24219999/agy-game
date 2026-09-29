@@ -182,6 +182,7 @@ export class MainMenuScene extends Phaser.Scene {
       id: HeroClass;
       name: string;
       sprite: string;
+      portrait: string;
       title: string;
       desc: string;
       str: number;
@@ -199,6 +200,7 @@ export class MainMenuScene extends Phaser.Scene {
         id: 'knight',
         name: 'Huyết Hiệp Sĩ',
         sprite: 'hero_knight',
+        portrait: 'portrait_knight',
         title: 'Cận Chiến Bất Hoại & Lifesteal',
         desc: 'Chiến binh mang giáp sắt dày và thanh đại kiếm khát máu.',
         str: 18,
@@ -216,6 +218,7 @@ export class MainMenuScene extends Phaser.Scene {
         id: 'mage',
         name: 'Hư Vô Pháp Sư',
         sprite: 'hero_mage',
+        portrait: 'portrait_mage',
         title: 'Phép Thuật AOE & Khống Chế',
         desc: 'Pháp sư triệu gọi năng lượng hư không, giữ cự ly bắn phá cực mạnh.',
         str: 8,
@@ -233,6 +236,7 @@ export class MainMenuScene extends Phaser.Scene {
         id: 'rogue',
         name: 'Bóng Ma Đạo Tặc',
         sprite: 'hero_rogue',
+        portrait: 'portrait_rogue',
         title: 'Chí Mạng & Tốc Đánh Điên Cuồng',
         desc: 'Sát thủ thoắt ẩn thoắt hiện với cặp song đao tẩm độc.',
         str: 12,
@@ -245,70 +249,142 @@ export class MainMenuScene extends Phaser.Scene {
         speed: 135,
         skillName: 'Ám Sát & Phi Dao',
         skillDesc: 'Lướt ra sau lưng bạo kích mục tiêu và xả quạt dao độc.'
+      },
+      {
+        id: 'paladin',
+        name: 'Thánh Quang Hiệp Sĩ',
+        sprite: 'hero_paladin',
+        portrait: 'portrait_paladin',
+        title: 'Hộ Thần Khiên Thánh & Phán Quyết',
+        desc: 'Chiến binh mang giáp hoàng kim bạch kim, búa thánh và khiên thái dương.',
+        str: 16,
+        vit: 20,
+        int: 14,
+        agi: 8,
+        hp: 270,
+        atk: 22,
+        def: 22,
+        speed: 105,
+        skillName: 'Thánh Phạt Quang Minh',
+        skillDesc: 'Tạo vòng tròn thái dương hủy diệt quái vật và nhận lá chắn thánh.'
+      },
+      {
+        id: 'ranger',
+        name: 'Thiện Xạ Băng Tuyết',
+        sprite: 'hero_ranger',
+        portrait: 'portrait_ranger',
+        title: 'Xuyên Thấu Cực Xa & Đóng Băng',
+        desc: 'Thợ săn yêu tinh với đại cung băng pha lê và áo choàng lông sói.',
+        str: 11,
+        vit: 12,
+        int: 11,
+        agi: 20,
+        hp: 175,
+        atk: 29,
+        def: 8,
+        speed: 130,
+        skillName: 'Mưa Tiễn Băng Giá',
+        skillDesc: 'Bắn 5 mũi tên băng xuyên thấu cực mạnh làm đông cứng kẻ thù.'
+      },
+      {
+        id: 'warlock',
+        name: 'Thuật Sĩ Hắc Ám',
+        sprite: 'hero_warlock',
+        portrait: 'portrait_warlock',
+        title: 'Rút Hồn Đoạt Mệnh & Quỷ Giới',
+        desc: 'Kẻ mang cặp sừng quỷ dữ, tà áo rách rưới và lưỡi hái xương tử thần.',
+        str: 9,
+        vit: 14,
+        int: 20,
+        agi: 11,
+        hp: 195,
+        atk: 31,
+        def: 10,
+        speed: 105,
+        skillName: 'Hút Cạn Linh Hồn',
+        skillDesc: 'Rút cạn HP 3 kẻ địch gần nhất, hồi máu và tích lũy linh hồn.'
       }
     ];
 
-    const cardWidth = 260;
-    const cardHeight = 330;
-    const spacing = 30;
-    const startX = width / 2 - (cardWidth * 1.5 + spacing);
-    const cardY = 320;
+    const cardWidth = 286;
+    const cardHeight = 186;
+    const spacingX = 16;
+    const startX = (width - (3 * cardWidth + 2 * spacingX)) / 2 + cardWidth / 2;
+    const startY = 236;
+    const rowSpacing = 194;
 
     classes.forEach((c, idx) => {
-      const x = startX + idx * (cardWidth + spacing) + cardWidth / 2;
+      const col = idx % 3;
+      const row = Math.floor(idx / 3);
+      const x = startX + col * (cardWidth + spacingX);
+      const y = startY + row * rowSpacing;
       const isSelected = this.selectedClass === c.id;
 
-      const container = this.add.container(x, cardY);
-      const bg = this.add.rectangle(0, 0, cardWidth, cardHeight, 0x151224, 0.95);
-      bg.setStrokeStyle(isSelected ? 3 : 1, isSelected ? 0xf6e05e : 0x3d3556);
+      const container = this.add.container(x, y);
+      const bg = this.add.rectangle(0, 0, cardWidth, cardHeight, isSelected ? 0x221a3a : 0x131021, 0.96);
+      bg.setStrokeStyle(isSelected ? 2.5 : 1, isSelected ? 0xf6e05e : 0x332a48);
 
-      // Hero Sprite Preview
-      const sprite = this.add.sprite(0, -95, c.sprite).setScale(2.2);
+      // Selected accent top border
+      if (isSelected) {
+        const topGlow = this.add.rectangle(0, -cardHeight / 2 + 2, cardWidth - 4, 3, 0xf6e05e, 0.95);
+        container.add(topGlow);
+      }
 
-      // Name & Title
-      const name = this.add.text(0, -35, c.name, {
+      // Left column: 64x64 Portrait image at (-94, -22)
+      const portrait = this.add.image(-94, -22, c.portrait);
+
+      // Under portrait: Hero in-game sprite preview at (-94, 44)
+      const spritePreview = this.add.sprite(-94, 44, c.sprite).setScale(1.1);
+
+      // Right side content (x from -50 to 134)
+      const name = this.add.text(-50, -78, c.name, {
         fontFamily: 'serif',
-        fontSize: '18px',
+        fontSize: '15px',
         color: isSelected ? '#ecc94b' : '#ffffff',
         fontStyle: 'bold'
-      }).setOrigin(0.5);
+      });
 
-      const title = this.add.text(0, -15, c.title, {
+      const title = this.add.text(-50, -60, c.title, {
         fontFamily: 'sans-serif',
-        fontSize: '10px',
-        color: '#63b3ed',
+        fontSize: '9.5px',
+        color: '#60a5fa',
         fontStyle: 'italic'
-      }).setOrigin(0.5);
+      });
 
-      // Attributes & Stats
-      const statsText = this.add.text(0, 30, `STR: ${c.str} | VIT: ${c.vit} | INT: ${c.int} | AGI: ${c.agi}\n❤️ Máu: ${c.hp}    ⚔️ Công: ${c.atk}    🛡️ Giáp: ${c.def}%`, {
+      const desc = this.add.text(-50, -46, c.desc, {
         fontFamily: 'sans-serif',
-        fontSize: '11px',
-        color: '#cbd5e0',
-        align: 'center',
-        lineSpacing: 5
-      }).setOrigin(0.5);
+        fontSize: '9px',
+        color: '#94a3b8',
+        wordWrap: { width: 180 }
+      });
+
+      // Starting stats: STR, VIT, INT, AGI, HP, ATK, DEF
+      const statsText = this.add.text(-50, -14, `STR: ${c.str} | VIT: ${c.vit} | INT: ${c.int} | AGI: ${c.agi}\n❤️ ${c.hp}    ⚔️ ${c.atk}    🛡️ ${c.def}%`, {
+        fontFamily: 'monospace',
+        fontSize: '9.5px',
+        color: '#fef08a',
+        lineSpacing: 3
+      });
 
       // Skill Box
-      const skillBg = this.add.rectangle(0, 100, cardWidth - 24, 60, 0x1e1933, 0.9);
-      skillBg.setStrokeStyle(1, 0x44337a);
+      const skillBg = this.add.rectangle(40, 48, 184, 44, 0x1a152e, 0.9);
+      skillBg.setStrokeStyle(1, isSelected ? 0x7e22ce : 0x332a48);
 
-      const skillTitle = this.add.text(0, 80, `⚡ ${c.skillName}`, {
-        fontFamily: 'sans-serif',
-        fontSize: '12px',
-        color: '#d6bcfa',
-        fontStyle: 'bold'
-      }).setOrigin(0.5);
-
-      const skillDesc = this.add.text(0, 105, c.skillDesc, {
+      const skillTitle = this.add.text(-46, 30, `⚡ ${c.skillName}`, {
         fontFamily: 'sans-serif',
         fontSize: '10px',
-        color: '#a0aec0',
-        align: 'center',
-        wordWrap: { width: cardWidth - 36 }
-      }).setOrigin(0.5);
+        color: '#d8b4fe',
+        fontStyle: 'bold'
+      });
 
-      container.add([bg, sprite, name, title, statsText, skillBg, skillTitle, skillDesc]);
+      const skillDesc = this.add.text(-46, 46, c.skillDesc, {
+        fontFamily: 'sans-serif',
+        fontSize: '8.5px',
+        color: '#94a3b8',
+        wordWrap: { width: 172 }
+      });
+
+      container.add([bg, portrait, spritePreview, name, title, desc, statsText, skillBg, skillTitle, skillDesc]);
 
       bg.setInteractive({ useHandCursor: true });
       bg.on('pointerdown', () => {
@@ -322,8 +398,8 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // Start Game Button
-    const startBtn = this.add.container(width / 2, height - 55);
-    const startBg = this.add.rectangle(0, 0, 280, 48, 0x742a2a);
+    const startBtn = this.add.container(width / 2, height - 38);
+    const startBg = this.add.rectangle(0, 0, 280, 44, 0x742a2a);
     startBg.setStrokeStyle(2, 0xe53e3e);
 
     const startText = this.add.text(0, 0, '⚔️ BẮT ĐẦU CHINH PHỤC', {
@@ -406,8 +482,7 @@ export class MainMenuScene extends Phaser.Scene {
         maxExp: 50,
         runSeed: this.currentSeed
       };
-    } else {
-      // rogue
+    } else if (this.selectedClass === 'rogue') {
       baseStats = {
         str: 12,
         vit: 12,
@@ -425,6 +500,82 @@ export class MainMenuScene extends Phaser.Scene {
         dodgeRate: 0.18,
         thorns: 0,
         speed: 135,
+        gold: 35,
+        souls: 0,
+        level: 1,
+        exp: 0,
+        maxExp: 50,
+        runSeed: this.currentSeed
+      };
+    } else if (this.selectedClass === 'paladin') {
+      baseStats = {
+        str: 16,
+        vit: 20,
+        int: 14,
+        agi: 8,
+        hp: 270,
+        maxHp: 270,
+        atk: 22,
+        def: 22,
+        attackSpeed: 0.95,
+        cooldownReduction: 0.05,
+        critRate: 0.10,
+        critDmg: 1.6,
+        lifeSteal: 0.04,
+        dodgeRate: 0.03,
+        thorns: 16,
+        speed: 105,
+        gold: 35,
+        souls: 0,
+        level: 1,
+        exp: 0,
+        maxExp: 50,
+        runSeed: this.currentSeed
+      };
+    } else if (this.selectedClass === 'ranger') {
+      baseStats = {
+        str: 11,
+        vit: 12,
+        int: 11,
+        agi: 20,
+        hp: 175,
+        maxHp: 175,
+        atk: 29,
+        def: 8,
+        attackSpeed: 1.3,
+        cooldownReduction: 0.10,
+        critRate: 0.20,
+        critDmg: 1.8,
+        lifeSteal: 0.02,
+        dodgeRate: 0.15,
+        thorns: 0,
+        speed: 130,
+        gold: 35,
+        souls: 0,
+        level: 1,
+        exp: 0,
+        maxExp: 50,
+        runSeed: this.currentSeed
+      };
+    } else {
+      // warlock
+      baseStats = {
+        str: 9,
+        vit: 14,
+        int: 20,
+        agi: 11,
+        hp: 195,
+        maxHp: 195,
+        atk: 31,
+        def: 10,
+        attackSpeed: 1.0,
+        cooldownReduction: 0.12,
+        critRate: 0.12,
+        critDmg: 1.7,
+        lifeSteal: 0.06,
+        dodgeRate: 0.06,
+        thorns: 4,
+        speed: 105,
         gold: 35,
         souls: 0,
         level: 1,

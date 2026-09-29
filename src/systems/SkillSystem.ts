@@ -86,6 +86,93 @@ export const SKILL_EVOLUTIONS: SkillEvolution[] = [
     description: 'Đòn đánh ngay lập tức KẾT LIỄU bất kỳ quái vật hoặc Tinh Anh nào có lượng máu dưới 25%.',
     icon: 'icon_crit',
     effectType: 'venom_storm'
+  },
+
+  // --- PALADIN EVOLUTIONS ---
+  {
+    id: 'evo_paladin_consecration',
+    classId: 'paladin',
+    tier: 1,
+    name: 'Thánh Địa Phán Quyết',
+    description: 'Vòng sáng thánh quang lưu lại 4 giây, liên tục thiêu đốt quái vật và hồi phục lượng lớn lá chắn.',
+    icon: 'icon_armor',
+    effectType: 'holy_consecration'
+  },
+  {
+    id: 'evo_paladin_wrath',
+    classId: 'paladin',
+    tier: 1,
+    name: 'Cuồng Nộ Thánh Thần',
+    description: 'Kêu gọi cột lửa thái dương giáng thế, tăng 150% sát thương trừng phạt và đánh lui quái vật.',
+    icon: 'icon_sword',
+    effectType: 'wrath_of_heavens'
+  },
+  {
+    id: 'evo_paladin_bastion',
+    classId: 'paladin',
+    tier: 2,
+    name: 'Pháo Đài Bất Hoại',
+    description: 'Tăng vĩnh viễn +50% giá trị lá chắn, và phản lại 100% sát thương nhận vào về kẻ tấn công.',
+    icon: 'icon_thorns',
+    effectType: 'holy_consecration'
+  },
+
+  // --- RANGER EVOLUTIONS ---
+  {
+    id: 'evo_ranger_blizzard',
+    classId: 'ranger',
+    tier: 1,
+    name: 'Bão Tuyết Cực Hàn',
+    description: 'Mưa tiễn băng đóng băng kẻ địch thêm 2 giây và làm phát nổ mảnh băng khi kẻ địch tử trận.',
+    icon: 'icon_frost',
+    effectType: 'blizzard_storm'
+  },
+  {
+    id: 'evo_ranger_pierce',
+    classId: 'ranger',
+    tier: 1,
+    name: 'Vạn Tiễn Xuyên Mây',
+    description: 'Bắn ra 9 mũi tên băng xuyên thấu vô tận với tốc độ cực hạn, xé toạc phòng thủ kẻ thù.',
+    icon: 'icon_boot',
+    effectType: 'frost_barrage'
+  },
+  {
+    id: 'evo_ranger_huntress',
+    classId: 'ranger',
+    tier: 2,
+    name: 'Thần Tiễn Hoang Dã',
+    description: 'Mỗi đòn đánh thường bắn kèm thêm 2 mũi tên băng tầm nhiệt tự động tìm mục tiêu.',
+    icon: 'icon_crit',
+    effectType: 'frost_barrage'
+  },
+
+  // --- WARLOCK EVOLUTIONS ---
+  {
+    id: 'evo_warlock_abyssal_pact',
+    classId: 'warlock',
+    tier: 1,
+    name: 'Giao Kèo Hư Vô',
+    description: 'Hút hồn hút cùng lúc 5 mục tiêu và đánh cắp 20% sát thương công kích của chúng trong 5 giây.',
+    icon: 'icon_vampire',
+    effectType: 'abyssal_torment'
+  },
+  {
+    id: 'evo_warlock_soul_harvest',
+    classId: 'warlock',
+    tier: 1,
+    name: 'Thu Hoạch Linh Hồn',
+    description: 'Quái vật bị rút cạn hồn phát nổ gây sát thương diện rộng và hồi sinh thành đệ tử bóng tối.',
+    icon: 'icon_soul',
+    effectType: 'soul_harvest'
+  },
+  {
+    id: 'evo_warlock_apocalypse',
+    classId: 'warlock',
+    tier: 2,
+    name: 'Đại Họa Hắc Ám',
+    description: 'Rút hồn vĩnh viễn tăng gấp đôi lượng máu hút và triệu hồi bóng ma bóng tối tàn phá kẻ địch.',
+    icon: 'icon_summon',
+    effectType: 'soul_harvest'
   }
 ];
 

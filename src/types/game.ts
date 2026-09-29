@@ -1,4 +1,4 @@
-export type HeroClass = 'knight' | 'mage' | 'rogue';
+export type HeroClass = 'knight' | 'mage' | 'rogue' | 'paladin' | 'ranger' | 'warlock';
 
 export interface HeroAttributes {
   str: number; // Sức Mạnh: +2.5 ATK, +0.3 DEF
@@ -43,6 +43,7 @@ export interface EquipmentItem {
   cost?: number;
   specialEffect?: string;
   enhanceLevel?: number; // 0 = base, +1, +2, +3, +4
+  icon?: string;
 }
 
 export type RelicTrigger = 'passive' | 'on_hit' | 'on_kill' | 'on_damaged' | 'low_hp' | 'time';
@@ -65,7 +66,7 @@ export interface SkillEvolution {
   name: string;
   description: string;
   icon: string;
-  effectType: 'vortex' | 'lightning_cyclone' | 'singularity' | 'cocytus_freeze' | 'clones' | 'venom_storm';
+  effectType: 'vortex' | 'lightning_cyclone' | 'singularity' | 'cocytus_freeze' | 'clones' | 'venom_storm' | 'holy_consecration' | 'wrath_of_heavens' | 'blizzard_storm' | 'frost_barrage' | 'abyssal_torment' | 'soul_harvest';
 }
 
 export type EliteAffixType = 'volatile' | 'shielded' | 'swift' | 'vampiric' | 'chilling';

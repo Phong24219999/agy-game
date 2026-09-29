@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Hero } from '../entities/Hero';
-import { DungeonNode, PerkCard, SkillEvolution } from '../types/game';
+import { DungeonNode, PerkCard, SkillEvolution, HeroStats } from '../types/game';
 import { ALL_PERK_CARDS, SYNERGY_INFO, SynergyManager } from '../systems/SynergySystem';
 import { SkillManager } from '../systems/SkillSystem';
 import { ALL_RELICS } from '../systems/RelicSystem';
@@ -270,16 +270,16 @@ export class RewardScene extends Phaser.Scene {
     const container = this.add.container(x, y);
 
     let borderColor = 0xa0aec0;
-    let titleColor = '#cbd5e0';
+    let titleColor = '#a0aec0';
     let rarityText = 'PHỔ THÔNG';
 
     if (card.rarity === 'rare') {
       borderColor = 0x3182ce;
-      titleColor = '#63b3ed';
+      titleColor = '#3182ce';
       rarityText = 'QUÝ HIẾM';
     } else if (card.rarity === 'epic') {
-      borderColor = 0x9f7aea;
-      titleColor = '#d6bcfa';
+      borderColor = 0x805ad5;
+      titleColor = '#805ad5';
       rarityText = 'SỬ THI';
     } else if (card.rarity === 'legendary') {
       borderColor = 0xecc94b;
@@ -287,36 +287,90 @@ export class RewardScene extends Phaser.Scene {
       rarityText = 'HUYỀN THOẠI';
     }
 
-    const bg = this.add.rectangle(0, 0, w, h, 0x141226, 0.96);
-    bg.setStrokeStyle(2, borderColor);
+    // Glowing Aura Outline for Rare, Epic, and Legendary cards
+    let auraGraphic: Phaser.GameObjects.Rectangle | undefined;
+    if (card.rarity === 'rare') {
+      auraGraphic = this.add.rectangle(0, 0, w + 6, h + 6, 0x3182ce, 0.16);
+      auraGraphic.setStrokeStyle(2, 0x63b3ed, 0.65);
+      container.add(auraGraphic);
+      this.tweens.add({
+        targets: auraGraphic,
+        alpha: { from: 0.15, to: 0.45 },
+        scaleX: { from: 1.0, to: 1.02 },
+        scaleY: { from: 1.0, to: 1.015 },
+        duration: 1200,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    } else if (card.rarity === 'epic') {
+      auraGraphic = this.add.rectangle(0, 0, w + 8, h + 8, 0x805ad5, 0.22);
+      auraGraphic.setStrokeStyle(2.5, 0xb794f4, 0.8);
+      container.add(auraGraphic);
+      this.tweens.add({
+        targets: auraGraphic,
+        alpha: { from: 0.2, to: 0.65 },
+        scaleX: { from: 1.0, to: 1.03 },
+        scaleY: { from: 1.0, to: 1.02 },
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    } else if (card.rarity === 'legendary') {
+      auraGraphic = this.add.rectangle(0, 0, w + 12, h + 12, 0xecc94b, 0.32);
+      auraGraphic.setStrokeStyle(3, 0xfff08a, 0.95);
+      container.add(auraGraphic);
+      this.tweens.add({
+        targets: auraGraphic,
+        alpha: { from: 0.3, to: 0.85 },
+        scaleX: { from: 1.0, to: 1.04 },
+        scaleY: { from: 1.0, to: 1.03 },
+        duration: 800,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    }
 
-    const rarityLabel = this.add.text(0, -h / 2 + 20, rarityText, {
+    const bg = this.add.rectangle(0, 0, w, h, 0x141226, 0.96);
+    bg.setStrokeStyle(2.5, borderColor);
+
+    const rarityLabel = this.add.text(0, -h / 2 + 18, rarityText, {
       fontFamily: 'sans-serif',
       fontSize: '11px',
       color: titleColor,
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
+    // Icon box with border
+    const iconBox = this.add.rectangle(0, -h / 2 + 60, 44, 44, 0x1f1734);
+    iconBox.setStrokeStyle(1.5, borderColor);
+
     let iconSprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc;
     if (this.textures.exists(card.icon)) {
-      iconSprite = this.add.sprite(0, -h / 2 + 65, card.icon).setScale(1.4);
+      iconSprite = this.add.sprite(0, -h / 2 + 60, card.icon).setScale(1.25);
     } else {
-      iconSprite = this.add.circle(0, -h / 2 + 65, 24, borderColor, 0.4);
+      iconSprite = this.add.circle(0, -h / 2 + 60, 18, borderColor, 0.4);
     }
 
-    const nameText = this.add.text(0, -h / 2 + 115, card.name, {
+    const nameText = this.add.text(0, -h / 2 + 104, card.name, {
       fontFamily: 'sans-serif',
-      fontSize: '15px',
+      fontSize: '14px',
       color: '#ffffff',
       fontStyle: 'bold',
       align: 'center',
       wordWrap: { width: w - 24 }
     }).setOrigin(0.5);
 
+    container.add([bg, rarityLabel, iconBox, iconSprite, nameText]);
+
+    let currentY = -h / 2 + 130;
+
     if (card.synergy && SYNERGY_INFO[card.synergy]) {
       const syn = SYNERGY_INFO[card.synergy];
-      const badge = this.add.container(0, -h / 2 + 150);
-      const badgeBg = this.add.rectangle(0, 0, 110, 22, Phaser.Display.Color.HexStringToColor(syn.color).color, 0.25);
+      const badge = this.add.container(0, currentY);
+      const badgeBg = this.add.rectangle(0, 0, 120, 20, Phaser.Display.Color.HexStringToColor(syn.color).color, 0.25);
       badgeBg.setStrokeStyle(1, Phaser.Display.Color.HexStringToColor(syn.color).color);
       const badgeText = this.add.text(0, 0, `[ ${syn.name.toUpperCase()} ]`, {
         fontFamily: 'sans-serif',
@@ -326,26 +380,44 @@ export class RewardScene extends Phaser.Scene {
       }).setOrigin(0.5);
       badge.add([badgeBg, badgeText]);
       container.add(badge);
+      currentY += 24;
     }
 
-    const descText = this.add.text(0, 30, card.description, {
+    // Clear stats display
+    const statsSummary = this.formatPerkStats(card.stats);
+    if (statsSummary) {
+      const statsBadgeBg = this.add.rectangle(0, currentY, w - 28, 20, 0x18241e, 0.9);
+      statsBadgeBg.setStrokeStyle(1, 0x38a169);
+      const statsText = this.add.text(0, currentY, statsSummary, {
+        fontFamily: 'sans-serif',
+        fontSize: '9.5px',
+        color: '#68d391',
+        fontStyle: 'bold',
+        align: 'center'
+      }).setOrigin(0.5);
+      container.add([statsBadgeBg, statsText]);
+      currentY += 26;
+    }
+
+    const descText = this.add.text(0, currentY + 20, card.description, {
       fontFamily: 'sans-serif',
-      fontSize: '12px',
-      color: '#e2e8f0',
+      fontSize: '11px',
+      color: '#cbd5e0',
       align: 'center',
-      wordWrap: { width: w - 30 }
+      wordWrap: { width: w - 28 },
+      lineSpacing: 3
     }).setOrigin(0.5);
 
-    const btn = this.add.rectangle(0, h / 2 - 35, 140, 32, 0x2b2346);
-    btn.setStrokeStyle(1, borderColor);
-    const btnText = this.add.text(0, h / 2 - 35, 'CHỌN', {
+    const btn = this.add.rectangle(0, h / 2 - 30, 140, 32, 0x2b2346);
+    btn.setStrokeStyle(1.5, borderColor);
+    const btnText = this.add.text(0, h / 2 - 30, 'CHỌN', {
       fontFamily: 'sans-serif',
       fontSize: '12px',
       color: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    container.add([bg, rarityLabel, iconSprite, nameText, descText, btn, btnText]);
+    container.add([descText, btn, btnText]);
 
     bg.setInteractive({ useHandCursor: true });
     btn.setInteractive({ useHandCursor: true });
@@ -357,7 +429,7 @@ export class RewardScene extends Phaser.Scene {
     };
     const onOut = () => {
       container.setScale(1.0);
-      bg.setStrokeStyle(2, borderColor);
+      bg.setStrokeStyle(2.5, borderColor);
       btn.setFillStyle(0x2b2346);
     };
 
@@ -374,6 +446,23 @@ export class RewardScene extends Phaser.Scene {
     btn.on('pointerdown', onSelect);
 
     this.cardsContainer.add(container);
+  }
+
+  private formatPerkStats(stats?: Partial<HeroStats>): string {
+    if (!stats) return '';
+    const parts: string[] = [];
+    if (stats.atk) parts.push(`+${stats.atk} ATK`);
+    if (stats.maxHp) parts.push(`+${stats.maxHp} HP`);
+    if (stats.def) parts.push(`+${stats.def}% DEF`);
+    if (stats.attackSpeed) parts.push(`+${Math.round(stats.attackSpeed * 100)}% Tốc Đánh`);
+    if (stats.critRate) parts.push(`+${Math.round(stats.critRate * 100)}% Bạo`);
+    if (stats.critDmg) parts.push(`+${Math.round(stats.critDmg * 100)}% ST Bạo`);
+    if (stats.lifeSteal) parts.push(`+${Math.round(stats.lifeSteal * 100)}% Hút Máu`);
+    if (stats.dodgeRate) parts.push(`+${Math.round(stats.dodgeRate * 100)}% Né`);
+    if (stats.thorns) parts.push(`Phản ${stats.thorns} Gai`);
+    if (stats.speed) parts.push(`+${stats.speed} Tốc`);
+    if (stats.cooldownReduction) parts.push(`-${Math.round(stats.cooldownReduction * 100)}% CDR`);
+    return parts.join(' | ');
   }
 
   private selectCard(card: PerkCard): void {
